@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Schema(description = "S3 업로드 완료 후 사진 정보 등록 요청")
 public class PhotoRegisterRequest {
 
-    @Schema(description = "Presigned URL 발급 시 받았던 S3 파일 키", example = "photos/stores/1/a1b2c3d4-e5f6-7890-1234-567890abcdef.jpg")
+    @Schema(description = "Presigned URL 발급 시 받았던 S3 파일 키", example = "platform/a1b2c3d4-e5f6-7890-1234-567890abcdef.jpg")
     private String s3Key;
 
     @Schema(description = "업로드한 파일의 원본 이름", example = "kimchi-stew.jpg")
