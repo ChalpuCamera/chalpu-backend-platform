@@ -3,6 +3,9 @@ package com.example.chalpuplatform.oauth.controller;
 import com.example.chalpuplatform.common.response.ApiResponse;
 import com.example.chalpuplatform.oauth.dto.AccessTokenDTO;
 import com.example.chalpuplatform.oauth.dto.RefreshTokenDTO;
+import com.example.chalpuplatform.oauth.dto.TokenDTO;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import com.example.chalpuplatform.oauth.security.jwt.UserDetailsImpl;
 import com.example.chalpuplatform.oauth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,8 +15,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,8 +31,10 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<AccessTokenDTO>> refresh(@RequestBody RefreshTokenDTO refreshToken) {
-        AccessTokenDTO newAccessToken = authService.refreshToken(refreshToken);
+    public ResponseEntity<ApiResponse<AccessTokenDTO>> refresh(
+            @CookieValue(name = "refreshToken") String refreshToken) {
+        RefreshTokenDTO refreshTokenDTO = new RefreshTokenDTO(refreshToken);
+        AccessTokenDTO newAccessToken = authService.refreshToken(refreshTokenDTO);
         return ResponseEntity.ok(ApiResponse.success("토큰 갱신이 완료되었습니다.", newAccessToken));
     }
 

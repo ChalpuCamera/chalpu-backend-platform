@@ -27,6 +27,7 @@ public class AuthService {
             // 토큰 검증 로직을 AuthService로 이동
             User user = validateAndGetUser(oldRefreshToken);
 
+            // 새로운 Access Token만 생성 (Refresh Token은 그대로 유지)
             String newAccessToken = tokenProvider.generateAccessToken(user.getId(), user.getEmail(), user.getRole().name());
             
             log.info("event=access_token_refreshed, user_id={}", user.getId());

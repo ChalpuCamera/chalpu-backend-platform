@@ -1,8 +1,7 @@
 package com.example.chalpuplatform.oauth.security.oauth2;
 
-import com.example.chalpuplatform.oauth.service.RefreshTokenService;
-import com.example.chalpuplatform.oauth.dto.TokenDTO;
-import com.example.chalpuplatform.oauth.security.jwt.JwtTokenProvider;
+import com.example.chalpuplatform.oauth.model.AuthCode;
+import com.example.chalpuplatform.oauth.repository.AuthCodeRepository;
 import com.example.chalpuplatform.oauth.security.jwt.UserDetailsImpl;
 import com.example.chalpuplatform.user.domain.UserLoginHistory;
 import com.example.chalpuplatform.user.repository.UserLoginHistoryRepository;
@@ -25,8 +24,7 @@ import java.nio.charset.StandardCharsets;
 @Component
 @RequiredArgsConstructor
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
-    private final JwtTokenProvider jwtTokenProvider;
-    private final RefreshTokenService refreshTokenService;
+    private final AuthCodeRepository authCodeRepository;
     private final UserLoginHistoryRepository userLoginHistoryRepository;
 
     @Value("${oauth2.redirect.success-url}")
@@ -41,15 +39,23 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         try {
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-            // AuthService를 통해 토큰 생성 (사용자 역할로 설정)
+            // 사용자 역할 가져오기
             String userRole = userDetails.getAuthorities().stream()
                     .findFirst()
                     .map(auth -> auth.getAuthority())
                     .orElse("ROLE_CUSTOMER");
-            TokenDTO tokenDTO = jwtTokenProvider.generateTokens(userDetails.getId(), userDetails.getEmail(), userRole);
 
-            // Refresh Token 저장
-            refreshTokenService.saveRefreshToken(tokenDTO.getRefreshToken(), userDetails.getId());
+            // 임시 인증 코드 생성
+            String authCode = java.util.UUID.randomUUID().toString();
+
+            // AuthCode 엔티티 생성 및 저장
+            AuthCode authCodeEntity = AuthCode.builder()
+                    .code(authCode)
+                    .userId(userDetails.getId())
+                    .userEmail(userDetails.getEmail())
+                    .userRole(userRole)
+                    .build();
+            authCodeRepository.save(authCodeEntity);
 
             // 로그인 이력 저장 (실패해도 무시)
             try {
@@ -59,21 +65,12 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 log.error("로그인 이력 저장 실패: userId={}, error={}", userDetails.getId(), e.getMessage());
             }
 
-            // Refresh Token을 HttpOnly 쿠키로 설정
-            Cookie refreshTokenCookie = new Cookie("refreshToken", tokenDTO.getRefreshToken());
-            refreshTokenCookie.setHttpOnly(true);
-            refreshTokenCookie.setSecure(true);
-            refreshTokenCookie.setPath("/");
-            refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 7일
-            response.addCookie(refreshTokenCookie);
+            log.info("OAuth2 로그인 성공 및 인증 코드 생성: userId={}, email={}, code={}", 
+                    userDetails.getId(), userDetails.getEmail(), authCode);
 
-            log.info("OAuth2 로그인 성공: userId={}, email={}, provider={}", 
-                    userDetails.getId(), userDetails.getEmail(), userDetails.getProvider());
-
-            // Access Token과 userId만 URL 파라미터로 전달
+            // 인증 코드만 URL 파라미터로 전달
             String targetUrl = UriComponentsBuilder.fromUriString(redirectSuccessUrl)
-                    .queryParam("accessToken", tokenDTO.getAccessToken())
-                    .queryParam("userId", userDetails.getId())
+                    .queryParam("code", authCode)
                     .build().toUriString();
 
             // 리다이렉트 수행
