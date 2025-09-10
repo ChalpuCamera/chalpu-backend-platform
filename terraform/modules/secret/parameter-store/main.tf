@@ -172,3 +172,16 @@ resource "aws_ssm_parameter" "cloudfront_domain" {
     Environment = var.environment
   }
 }
+
+# Sentry Configuration
+resource "aws_ssm_parameter" "sentry_dsn" {
+  name        = "/chalpu-platform/${var.environment}/sentry-dsn"
+  description = "Sentry DSN for error tracking"
+  type        = "SecureString"
+  value       = var.sentry_dsn
+
+  tags = {
+    Name        = "chalpu-${var.environment}-sentry-dsn"
+    Environment = var.environment
+  }
+}

@@ -52,6 +52,7 @@ module "parameter_store" {
   oauth2_redirect_failure_url = var.oauth2_redirect_failure_url
   s3_bucket                  = var.s3_bucket
   cloudfront_domain          = var.cloudfront_domain
+  sentry_dsn                 = var.sentry_dsn
 }
 
 # EC2 Module

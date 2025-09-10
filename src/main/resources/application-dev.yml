@@ -83,3 +83,13 @@ cloud:
       static: ap-northeast-2
     stack:
       auto: false
+
+# Sentry Configuration
+sentry:
+  dsn: ${sentry-dsn}
+  environment: dev
+  traces-sample-rate: 1.0
+  enable-tracing: true
+  send-default-pii: false
+  attach-threads: true
+  attach-stacktrace: true

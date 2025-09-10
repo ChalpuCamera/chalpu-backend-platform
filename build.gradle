@@ -57,6 +57,10 @@ dependencies {
 
     // Loki 로그 전송을 위한 Appender
     implementation 'com.github.loki4j:loki-logback-appender:1.5.2'
+    
+    // Sentry for error tracking
+    implementation 'io.sentry:sentry-spring-boot-starter-jakarta:7.3.0'
+    implementation 'io.sentry:sentry-logback:7.3.0'
 }
 
 tasks.named('test') {

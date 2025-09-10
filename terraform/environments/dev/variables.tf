@@ -128,6 +128,12 @@ variable "cloudfront_domain" {
   default     = "https://cdn.chalpu.com"
 }
 
+variable "sentry_dsn" {
+  description = "Sentry DSN for error tracking"
+  type        = string
+  sensitive   = true
+}
+
 # Tags
 variable "tags" {
   description = "Tags to apply to resources"
