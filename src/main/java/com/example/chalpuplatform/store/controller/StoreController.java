@@ -4,7 +4,7 @@ import com.example.chalpuplatform.common.exception.ErrorMessage;
 import com.example.chalpuplatform.common.exception.StoreException;
 import com.example.chalpuplatform.common.response.ApiResponse;
 import com.example.chalpuplatform.common.response.PageResponse;
-import com.example.chalpuplatform.oauth.security.jwt.UserDetailsImpl;
+import com.example.chalpuplatform.oauth.jwt.UserDetailsImpl;
 import com.example.chalpuplatform.store.dto.MemberInviteRequest;
 import com.example.chalpuplatform.store.dto.MemberResponse;
 import com.example.chalpuplatform.store.dto.StoreRequest;
@@ -75,7 +75,7 @@ public class StoreController {
         
         // 권한 검증: 사용자가 해당 매장에 접근할 수 있는지 확인
         if (!userStoreRoleService.canUserAccessStore(userDetails.getId(), storeId)) {
-            throw new StoreException(ErrorMessage.STORE_ACCESS_DENIED);
+            throw new StoreException(ErrorMessage.STORE_NOT_FOUND);
         }
         
         StoreResponse store = storeService.getStore(storeId);

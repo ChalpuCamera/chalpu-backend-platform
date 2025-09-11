@@ -24,20 +24,25 @@ public class StoreResponse {
 
     @Schema(description = "주소", example = "서울시 강남구 테헤란로 123")
     private String address;
+
+    @Schema(description = "배달의 민족 링크", example = "https://baemin.me/restaurant/12345")
+    private String baeminLink;
+
+    @Schema(description = "요기요 링크", example = "https://www.yogiyo.co.kr/restaurant/12345")
+    private String yogiyoLink;
+
+    @Schema(description = "쿠팡이츠 링크", example = "https://www.coupang.com/restaurant/12345")
+    private String coupangEatsLink;
     
-    @Schema(description = "생성 시간", example = "2024-01-15T09:30:00")
-    private LocalDateTime createdAt;
-    
-    @Schema(description = "수정 시간", example = "2024-01-15T10:30:00")
-    private LocalDateTime updatedAt;
-    
+
     public static StoreResponse from(Store store) {
         return StoreResponse.builder()
                 .storeId(store.getId())
                 .storeName(store.getStoreName())
                 .address(store.getAddress())
-                .createdAt(store.getCreatedAt())
-                .updatedAt(store.getUpdatedAt())
+                .baeminLink(store.getDeliveryPlatformLinks().getBaeminLink())
+                .yogiyoLink(store.getDeliveryPlatformLinks().getYogiyoLink())
+                .coupangEatsLink(store.getDeliveryPlatformLinks().getCoupangeatsLink())
                 .build();
     }
 } 

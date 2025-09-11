@@ -18,4 +18,13 @@ public class StoreRequest {
 
     @Schema(description = "주소", example = "서울시 강남구 테헤란로 123")
     private String address;
+
+    @Schema(description = "배달의민족 링크", example = "https://baemin.com/store/12345")
+    private String baeminLink;
+
+    @Schema(description = "요기요 링크", example = "https://yogiyo.com/store/12345")
+    private String yogiyoLink;
+
+    @Schema(description = "쿠팡이츠 링크", example = "https://coupangeats.com/store/12345")
+    private String coupangeatsLink;
 } 

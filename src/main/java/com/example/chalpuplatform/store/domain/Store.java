@@ -33,6 +33,9 @@ public class Store extends BaseTimeEntity {
     @Builder.Default
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
+
+    @Embedded
+    private DeliveryPlatformLinks deliveryPlatformLinks;
     
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
@@ -45,12 +48,24 @@ public class Store extends BaseTimeEntity {
         return Store.builder()
                 .storeName(storeRequest.getStoreName())
                 .address(storeRequest.getAddress())
+                .deliveryPlatformLinks(DeliveryPlatformLinks.builder()
+                        .baeminLink(storeRequest.getBaeminLink())
+                        .yogiyoLink(storeRequest.getYogiyoLink())
+                        .coupangeatsLink(storeRequest.getCoupangeatsLink())
+                        .build())
                 .build();
     }
 
     public void updateStore(StoreRequest storeRequest) {
         this.storeName = storeRequest.getStoreName();
         this.address = storeRequest.getAddress();
+        
+        if (this.deliveryPlatformLinks == null) {
+            this.deliveryPlatformLinks = new DeliveryPlatformLinks();
+        }
+        this.deliveryPlatformLinks.setBaeminLink(storeRequest.getBaeminLink());
+        this.deliveryPlatformLinks.setYogiyoLink(storeRequest.getYogiyoLink());
+        this.deliveryPlatformLinks.setCoupangeatsLink(storeRequest.getCoupangeatsLink());
     }
 
     public void softDelete() {
