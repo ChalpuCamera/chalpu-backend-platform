@@ -1,4 +1,4 @@
-package com.example.chalpuplatform.oauth.security.jwt;
+package com.example.chalpuplatform.oauth.jwt;
 
 import com.example.chalpuplatform.common.exception.ErrorMessage;
 import com.example.chalpuplatform.common.response.ApiResponse;
@@ -48,7 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     Long userId = tokenProvider.getUserIdFromToken(jwt);
                     String email = tokenProvider.getEmailFromToken(jwt);
 
-                    String role = tokenProvider.getRoleFromToken(jwt) != null ? tokenProvider.getRoleFromToken(jwt) : "ROLE_USER";
+                    String role = tokenProvider.getRoleFromToken(jwt) != null ? tokenProvider.getRoleFromToken(jwt) : "ROLE_CUSTOMER";
                     UserDetails userDetails = new UserDetailsImpl(
                         userId, 
                         email, 
@@ -56,7 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         null, // picture - JWT에서 추출하지 않음  
                         null, // provider - JWT에서 추출하지 않음
                         List.of(new SimpleGrantedAuthority(role)), 
-                        null  // attributes - JWT 토큰에는 OAuth2 provider의 추가 속성 정보가 없음
+                        null
                     );
 
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(

@@ -1,4 +1,4 @@
-package com.example.chalpuplatform.oauth.security.oauth2.strategy;
+package com.example.chalpuplatform.oauth.strategy;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package com.example.chalpuplatform.oauth.security.oauth2.user;
+package com.example.chalpuplatform.oauth.provider;
 
 import lombok.Getter;
 

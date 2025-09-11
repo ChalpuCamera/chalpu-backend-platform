@@ -1,7 +1,7 @@
-package com.example.chalpuplatform.oauth.security.oauth2.factory;
+package com.example.chalpuplatform.oauth.service;
 
 import com.example.chalpuplatform.oauth.model.AuthProvider;
-import com.example.chalpuplatform.oauth.security.oauth2.user.OAuth2UserInfo;
+import com.example.chalpuplatform.oauth.provider.OAuth2UserInfo;
 import com.example.chalpuplatform.user.domain.Role;
 import com.example.chalpuplatform.user.domain.User;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +24,7 @@ public class OAuth2UserFactory {
                 .picture(userInfo.getImageUrl())
                 .socialId(userInfo.getId())
                 .provider(provider)
-                .role(Role.ROLE_USER)  // 기본 역할
+                .role(Role.ROLE_CUSTOMER)  // 기본 역할
                 .isActive(true)
                 .build();
         

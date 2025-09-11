@@ -1,4 +1,4 @@
-package com.example.chalpuplatform.oauth.security.oauth2.strategy;
+package com.example.chalpuplatform.oauth.strategy;
 
 import com.example.chalpuplatform.user.domain.User;
 import org.springframework.security.oauth2.core.user.OAuth2User;

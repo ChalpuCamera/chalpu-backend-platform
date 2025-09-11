@@ -1,4 +1,4 @@
-package com.example.chalpuplatform.oauth.security.oauth2;
+package com.example.chalpuplatform.oauth.handler;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

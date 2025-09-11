@@ -1,4 +1,4 @@
-package com.example.chalpuplatform.oauth.security.jwt;
+package com.example.chalpuplatform.oauth.jwt;
 
 import com.example.chalpuplatform.common.exception.ErrorMessage;
 import com.example.chalpuplatform.common.exception.UserException;

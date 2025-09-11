@@ -5,7 +5,7 @@ import com.example.chalpuplatform.oauth.dto.CodeExchangeRequest;
 import com.example.chalpuplatform.oauth.dto.TokenExchangeResponse;
 import com.example.chalpuplatform.oauth.model.AuthCode;
 import com.example.chalpuplatform.oauth.repository.AuthCodeRepository;
-import com.example.chalpuplatform.oauth.security.jwt.JwtTokenProvider;
+import com.example.chalpuplatform.oauth.jwt.JwtTokenProvider;
 import com.example.chalpuplatform.oauth.service.RefreshTokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

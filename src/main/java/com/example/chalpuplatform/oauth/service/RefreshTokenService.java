@@ -5,7 +5,7 @@ import com.example.chalpuplatform.common.exception.RefreshTokenException;
 import com.example.chalpuplatform.common.exception.UserException;
 import com.example.chalpuplatform.oauth.model.RefreshToken;
 import com.example.chalpuplatform.oauth.repository.RefreshTokenRepository;
-import com.example.chalpuplatform.oauth.security.jwt.JwtTokenProvider;
+import com.example.chalpuplatform.oauth.jwt.JwtTokenProvider;
 import com.example.chalpuplatform.user.domain.User;
 import com.example.chalpuplatform.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

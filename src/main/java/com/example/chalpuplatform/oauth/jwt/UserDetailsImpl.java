@@ -1,4 +1,4 @@
-package com.example.chalpuplatform.oauth.security.jwt;
+package com.example.chalpuplatform.oauth.jwt;
 
 import com.example.chalpuplatform.oauth.model.AuthProvider;
 import com.example.chalpuplatform.user.domain.User;
@@ -26,7 +26,7 @@ public class UserDetailsImpl implements UserDetails, OAuth2User {
 
     public static UserDetailsImpl build(User user) {
         // 사용자의 실제 role 사용
-        String role = user.getRole() != null ? user.getRole().name() : "ROLE_USER";
+        String role = user.getRole() != null ? user.getRole().name() : "ROLE_CUSTOMER";
         List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
 
         return new UserDetailsImpl(

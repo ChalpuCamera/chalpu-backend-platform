@@ -6,7 +6,7 @@ import com.example.chalpuplatform.oauth.dto.RefreshTokenDTO;
 import com.example.chalpuplatform.oauth.dto.TokenDTO;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import com.example.chalpuplatform.oauth.security.jwt.UserDetailsImpl;
+import com.example.chalpuplatform.oauth.jwt.UserDetailsImpl;
 import com.example.chalpuplatform.oauth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

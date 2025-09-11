@@ -1,8 +1,8 @@
-package com.example.chalpuplatform.oauth.security.oauth2.processor;
+package com.example.chalpuplatform.oauth.service;
 
 import com.example.chalpuplatform.common.exception.ErrorMessage;
 import com.example.chalpuplatform.common.exception.OAuth2AuthenticationProcessingException;
-import com.example.chalpuplatform.oauth.security.oauth2.user.OAuth2UserInfo;
+import com.example.chalpuplatform.oauth.provider.OAuth2UserInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;

@@ -1,6 +1,6 @@
-package com.example.chalpuplatform.oauth.security.oauth2;
+package com.example.chalpuplatform.oauth.service;
 
-import com.example.chalpuplatform.oauth.security.oauth2.processor.OAuth2UserProcessor;
+import com.example.chalpuplatform.oauth.service.OAuth2UserProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;

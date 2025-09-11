@@ -5,7 +5,7 @@ import com.example.chalpuplatform.common.exception.ErrorMessage;
 import com.example.chalpuplatform.common.exception.UserException;
 import com.example.chalpuplatform.oauth.dto.AccessTokenDTO;
 import com.example.chalpuplatform.oauth.dto.RefreshTokenDTO;
-import com.example.chalpuplatform.oauth.security.jwt.JwtTokenProvider;
+import com.example.chalpuplatform.oauth.jwt.JwtTokenProvider;
 import com.example.chalpuplatform.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

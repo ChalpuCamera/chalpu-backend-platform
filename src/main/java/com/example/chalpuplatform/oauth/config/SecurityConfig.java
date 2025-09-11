@@ -1,9 +1,9 @@
 package com.example.chalpuplatform.oauth.config;
 
-import com.example.chalpuplatform.oauth.security.jwt.JwtAuthenticationFilter;
-import com.example.chalpuplatform.oauth.security.oauth2.CustomOAuth2UserService;
-import com.example.chalpuplatform.oauth.security.oauth2.OAuth2AuthenticationFailureHandler;
-import com.example.chalpuplatform.oauth.security.oauth2.OAuth2AuthenticationSuccessHandler;
+import com.example.chalpuplatform.oauth.jwt.JwtAuthenticationFilter;
+import com.example.chalpuplatform.oauth.service.CustomOAuth2UserService;
+import com.example.chalpuplatform.oauth.handler.OAuth2AuthenticationFailureHandler;
+import com.example.chalpuplatform.oauth.handler.OAuth2AuthenticationSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

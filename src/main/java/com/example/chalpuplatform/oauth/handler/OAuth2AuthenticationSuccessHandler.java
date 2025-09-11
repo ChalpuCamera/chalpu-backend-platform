@@ -1,8 +1,8 @@
-package com.example.chalpuplatform.oauth.security.oauth2;
+package com.example.chalpuplatform.oauth.handler;
 
 import com.example.chalpuplatform.oauth.model.AuthCode;
 import com.example.chalpuplatform.oauth.repository.AuthCodeRepository;
-import com.example.chalpuplatform.oauth.security.jwt.UserDetailsImpl;
+import com.example.chalpuplatform.oauth.jwt.UserDetailsImpl;
 import com.example.chalpuplatform.user.domain.UserLoginHistory;
 import com.example.chalpuplatform.user.repository.UserLoginHistoryRepository;
 import jakarta.servlet.http.Cookie;
