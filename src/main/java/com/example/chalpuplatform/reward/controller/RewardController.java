@@ -1,7 +1,7 @@
 package com.example.chalpuplatform.reward.controller;
 
 import com.example.chalpuplatform.common.response.ApiResponse;
-import com.example.chalpuplatform.oauth.security.jwt.UserDetailsImpl;
+import com.example.chalpuplatform.oauth.jwt.UserDetailsImpl;
 import com.example.chalpuplatform.reward.dto.RewardRedemptionRequest;
 import com.example.chalpuplatform.reward.dto.RewardRedemptionResponse;
 import com.example.chalpuplatform.reward.dto.RewardResponse;

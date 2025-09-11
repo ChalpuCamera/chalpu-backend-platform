@@ -5,7 +5,7 @@ import com.example.chalpuplatform.common.response.PageResponse;
 import com.example.chalpuplatform.fooditem.dto.FoodItemRequest;
 import com.example.chalpuplatform.fooditem.dto.FoodItemResponse;
 import com.example.chalpuplatform.fooditem.service.FoodItemService;
-import com.example.chalpuplatform.oauth.security.jwt.UserDetailsImpl;
+import com.example.chalpuplatform.oauth.jwt.UserDetailsImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -87,18 +87,5 @@ public class FoodItemController {
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         foodItemService.deleteFoodItem(foodId, userDetails.getId());
         return ApiResponse.success();
-    }
-
-    @GetMapping("/store/{storeId}/search")
-    @Operation(
-        summary = "음식 검색",
-        description = "매장 내에서 음식명으로 검색합니다."
-    )
-    public ApiResponse<PageResponse<FoodItemResponse>> searchFoodItems(
-            @PathVariable @Parameter(description = "매장 ID") Long storeId,
-            @RequestParam @Parameter(description = "검색 키워드") String keyword,
-            @PageableDefault(size = 20) Pageable pageable) {
-        PageResponse<FoodItemResponse> foodItems = foodItemService.searchFoodItems(storeId, keyword, pageable);
-        return ApiResponse.success(foodItems);
     }
 } 

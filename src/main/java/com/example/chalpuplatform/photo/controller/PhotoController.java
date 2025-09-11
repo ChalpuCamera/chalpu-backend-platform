@@ -2,7 +2,7 @@ package com.example.chalpuplatform.photo.controller;
 
 import com.example.chalpuplatform.common.response.ApiResponse;
 import com.example.chalpuplatform.common.response.PageResponse;
-import com.example.chalpuplatform.oauth.security.jwt.UserDetailsImpl;
+import com.example.chalpuplatform.oauth.jwt.UserDetailsImpl;
 import com.example.chalpuplatform.photo.dto.*;
 import com.example.chalpuplatform.photo.service.PhotoService;
 import io.swagger.v3.oas.annotations.Operation;

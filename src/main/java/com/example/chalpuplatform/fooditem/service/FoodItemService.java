@@ -132,22 +132,6 @@ public class FoodItemService {
     }
 
     /**
-     * 음식 아이템 검색 (활성 음식만)
-     */
-    public PageResponse<FoodItemResponse> searchFoodItems(Long storeId, String keyword, Pageable pageable) {
-        try {
-            Page<FoodItem> foodItemPage = foodItemRepository.findByStoreIdAndIsActiveTrueAndFoodNameContainingWithoutJoin(
-                    storeId, keyword, pageable);
-            Page<FoodItemResponse> foodResponsePage = foodItemPage.map(FoodItemResponse::from);
-            return PageResponse.from(foodResponsePage);
-        } catch (Exception e) {
-            log.error("Food search error: storeId={}, keyword={}", storeId, keyword, e);
-            throw new FoodException(ErrorMessage.FOOD_NOT_FOUND);
-        }
-    }
-
-
-    /**
      * 음식 아이템 ID로 조회 (활성 음식만)
      */
     private FoodItem findFoodItemById(Long foodId) {

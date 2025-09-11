@@ -3,7 +3,7 @@ package com.example.chalpuplatform.customerfeedback.controller;
 import com.example.chalpuplatform.common.response.ApiResponse;
 import com.example.chalpuplatform.common.response.PageResponse;
 import com.example.chalpuplatform.customerfeedback.service.CustomerFeedbackService;
-import com.example.chalpuplatform.oauth.security.jwt.UserDetailsImpl;
+import com.example.chalpuplatform.oauth.jwt.UserDetailsImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
