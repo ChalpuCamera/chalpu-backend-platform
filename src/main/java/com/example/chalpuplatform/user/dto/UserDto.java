@@ -10,6 +10,7 @@ public class UserDto {
     private String name;
     private String profileImageUrl;
     private String provider;
+    private String role;
 
     public UserDto(User user) {
         this.id = user.getId();
@@ -17,5 +18,6 @@ public class UserDto {
         this.name = user.getName();
         this.profileImageUrl = user.getPicture();
         this.provider = user.getProvider().name();
+        this.role = user.getRole().name();
     }
 }

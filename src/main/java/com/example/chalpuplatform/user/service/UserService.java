@@ -3,7 +3,7 @@ package com.example.chalpuplatform.user.service;
 import com.example.chalpuplatform.common.exception.ErrorMessage;
 import com.example.chalpuplatform.common.exception.UserException;
 import com.example.chalpuplatform.oauth.dto.UserInfoDTO;
-import com.example.chalpuplatform.oauth.security.jwt.UserDetailsImpl;
+import com.example.chalpuplatform.oauth.jwt.UserDetailsImpl;
 import com.example.chalpuplatform.photo.repository.PhotoRepository;
 import com.example.chalpuplatform.store.repository.UserStoreRoleRepository;
 import com.example.chalpuplatform.user.domain.User;
