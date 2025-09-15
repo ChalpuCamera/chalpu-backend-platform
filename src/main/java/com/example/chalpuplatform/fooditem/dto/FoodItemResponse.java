@@ -25,7 +25,10 @@ public class FoodItemResponse {
     
     @Schema(description = "음식명", example = "김치찌개")
     private String foodName;
-    
+
+    @Schema(description = "음식 설명", example = "직접 담근 김치로 만든 얼큰한 김치찌개입니다")
+    private String description;
+
     @Schema(description = "가격", example = "8000")
     private BigDecimal price;
     
@@ -46,6 +49,7 @@ public class FoodItemResponse {
                 .foodItemId(foodItem.getId())
                 .storeId(foodItem.getStore() != null ? foodItem.getStore().getId() : null)
                 .foodName(foodItem.getFoodName())
+                .description(foodItem.getDescription())
                 .thumbnailUrl(foodItem.getThumbnailUrl())
                 .price(foodItem.getPrice())
                 .isActive(foodItem.getIsActive())

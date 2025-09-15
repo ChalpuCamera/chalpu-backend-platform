@@ -30,6 +30,10 @@ public class FoodItem extends BaseTimeEntity {
 
     @Column(length = 100, nullable = false)
     private String foodName;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
     private BigDecimal price;
     private String thumbnailUrl;
     
@@ -41,6 +45,7 @@ public class FoodItem extends BaseTimeEntity {
         return FoodItem.builder()
                 .store(store)
                 .foodName(request.getFoodName())
+                .description(request.getDescription())
                 .price(request.getPrice())
                 .isActive(request.getIsActive() != null ? request.getIsActive() : true)
                 .build();
@@ -49,6 +54,7 @@ public class FoodItem extends BaseTimeEntity {
     // 업데이트 메서드
     public void updateFoodItem(FoodItemRequest request) {
         this.foodName = request.getFoodName();
+        this.description = request.getDescription();
         this.thumbnailUrl = request.getThumbnailUrl();
         this.price = request.getPrice();
         if (request.getIsActive() != null) {
