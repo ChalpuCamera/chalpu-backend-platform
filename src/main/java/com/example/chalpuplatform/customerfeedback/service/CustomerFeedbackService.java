@@ -257,4 +257,11 @@ public class CustomerFeedbackService {
             throw new FeedbackException(ErrorMessage.PRESIGNED_URL_GENERATION_FAILED);
         }
     }
+
+    public Page<FeedbackResponse> getFoodFeedbacks(Long foodId, Pageable pageable) {
+        Page<CustomerFeedback> feedbacks = feedbackRepository
+                .findByFoodItemIdAndIsActiveTrueOrderByCreatedAtDesc(foodId, pageable);
+
+        return feedbacks.map(this::mapToFeedbackResponse);
+    }
 }

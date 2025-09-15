@@ -17,11 +17,9 @@ public interface CustomerFeedbackRepository extends JpaRepository<CustomerFeedba
     
     Page<CustomerFeedback> findByUserIdAndIsActiveTrueOrderByCreatedAtDesc(Long userId, Pageable pageable);
     
-    List<CustomerFeedback> findByStoreIdAndIsActiveTrueOrderByCreatedAtDesc(Long storeId);
-    
     Page<CustomerFeedback> findByStoreIdAndIsActiveTrueOrderByCreatedAtDesc(Long storeId, Pageable pageable);
-    
-    List<CustomerFeedback> findByFoodItemIdAndIsActiveTrueOrderByCreatedAtDesc(Long foodItemId);
+
+    Page<CustomerFeedback> findByFoodItemIdAndIsActiveTrueOrderByCreatedAtDesc(Long foodItemId, Pageable pageable);
     
     @Query("SELECT cf FROM CustomerFeedback cf JOIN FETCH cf.user JOIN FETCH cf.foodItem WHERE cf.store.id = :storeId AND cf.isActive = true ORDER BY cf.createdAt DESC")
     List<CustomerFeedback> findByStoreIdWithUserAndFoodItem(@Param("storeId") Long storeId);

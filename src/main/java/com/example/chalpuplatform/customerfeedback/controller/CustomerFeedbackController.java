@@ -112,7 +112,7 @@ public class CustomerFeedbackController {
 
     @GetMapping("/store/{storeId}")
     @Operation(
-        summary = "매장별 피드백 목록 조회",
+        summary = "사장님이 매장별 피드백 목록 조회하는 API",
         description = "특정 매장에 대한 모든 고객 피드백을 페이징으로 조회합니다. 매장 사장이 고객 반응을 확인할 때 사용합니다. 기본 20개씩 최신 순으로 정렬됩니다."
     )
     @ApiResponses({
@@ -145,9 +145,44 @@ public class CustomerFeedbackController {
         return ResponseEntity.ok(ApiResponse.success(PageResponse.from(responses)));
     }
 
+    @GetMapping("/food/{foodId}")
+    @Operation(
+        summary = "사장님이 음식별 피드백 목록 조회하는 API",
+        description = "특정 음식에 대한 모든 고객 피드백을 페이징으로 조회합니다. 매장 사장이 특정 음식에 대한 고객 반응을 확인할 때 사용합니다. 기본 20개씩 최신 순으로 정렬됩니다."
+    )
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "음식 피드백 목록 조회 성공",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = PageResponse.class),
+                examples = @ExampleObject(
+                    value = "{\"success\": true, \"message\": \"성공했습니다\", \"data\": {\"content\": [{\"id\": 1, \"customerId\": 2, \"customerName\": \"홍길동\", \"foodId\": 1, \"foodName\": \"지리산\", \"photoUrls\": [\"https://s3.../photo1.jpg\"], \"createdAt\": \"2024-01-01T10:00:00\"}], \"page\": 0, \"size\": 20, \"totalElements\": 100, \"totalPages\": 5, \"hasNext\": true, \"hasPrevious\": false}}"
+                )
+            )
+        ),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "음식을 찾을 수 없습니다")
+    })
+    public ResponseEntity<ApiResponse<PageResponse<FeedbackResponse>>> getFoodFeedbacks(
+            @Parameter(description = "음식 ID", example = "1")
+            @PathVariable("foodId") Long foodId,
+            @Parameter(
+                description = "페이징 정보 (page=0부터 시작, size=페이지 사이즈, sort=정렬 기준)",
+                examples = @ExampleObject(
+                    name = "기본 예시",
+                    value = "page=0&size=20&sort=createdAt,desc"
+                )
+            )
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        Page<FeedbackResponse> responses = feedbackService.getFoodFeedbacks(foodId, pageable);
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(responses)));
+    }
+
     @GetMapping("/{feedbackId}")
     @Operation(
-        summary = "피드백 상세 조회",
+        summary = "특정 피드백 상세 조회하는 API",
         description = "특정 피드백의 상세 정보를 조회합니다. 피드백 사진, 설문 응답, 매장 및 음식 정보를 포함합니다."
     )
     @ApiResponses({
