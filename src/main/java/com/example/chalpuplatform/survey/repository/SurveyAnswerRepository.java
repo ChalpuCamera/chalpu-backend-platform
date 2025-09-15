@@ -9,12 +9,15 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SurveyAnswerRepository extends JpaRepository<SurveyAnswer, Long> {
 
     List<SurveyAnswer> findByFeedbackIdOrderByQuestionId(Long feedbackId);
-    
+
+    Optional<SurveyAnswer> findByFeedbackIdAndQuestionId(Long feedbackId, Long questionId);
+
     List<SurveyAnswer> findByQuestionId(Long questionId);
     
     void deleteByFeedbackId(Long feedbackId);

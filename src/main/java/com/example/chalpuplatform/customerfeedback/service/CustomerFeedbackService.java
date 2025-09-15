@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -174,7 +175,7 @@ public class CustomerFeedbackService {
         Page<CustomerFeedback> feedbacks = feedbackRepository
                 .findByStoreIdAndIsActiveTrueOrderByCreatedAtDesc(storeId, pageable);
 
-        return feedbacks.map(this::mapToFeedbackResponse);
+        return feedbacks.map(feedback -> mapToFeedbackResponseWithQuestionFilter(feedback, 9L));
     }
 
     @Transactional(readOnly = true)
@@ -193,6 +194,27 @@ public class CustomerFeedbackService {
         response.setSurveyAnswers(answers.stream()
                 .map(SurveyAnswerResponse::from)
                 .collect(Collectors.toList()));
+        response.setPhotoUrls(photos.stream()
+                .map(FeedbackPhoto::getImageUrl)
+                .collect(Collectors.toList()));
+
+        return response;
+    }
+
+    private FeedbackResponse mapToFeedbackResponseWithQuestionFilter(CustomerFeedback feedback, Long questionId) {
+        // Repository에서 특정 questionId에 대한 답변만 조회
+        Optional<SurveyAnswer> answerOpt = answerRepository.findByFeedbackIdAndQuestionId(feedback.getId(), questionId);
+        List<FeedbackPhoto> photos = photoRepository.findByFeedbackIdOrderByCreatedAtAsc(feedback.getId());
+
+        FeedbackResponse response = FeedbackResponse.from(feedback);
+
+        // questionId에 해당하는 답변이 있으면 리스트에 추가
+        if (answerOpt.isPresent()) {
+            response.setSurveyAnswers(List.of(SurveyAnswerResponse.from(answerOpt.get())));
+        } else {
+            response.setSurveyAnswers(List.of());
+        }
+
         response.setPhotoUrls(photos.stream()
                 .map(FeedbackPhoto::getImageUrl)
                 .collect(Collectors.toList()));
@@ -262,6 +284,6 @@ public class CustomerFeedbackService {
         Page<CustomerFeedback> feedbacks = feedbackRepository
                 .findByFoodItemIdAndIsActiveTrueOrderByCreatedAtDesc(foodId, pageable);
 
-        return feedbacks.map(this::mapToFeedbackResponse);
+        return feedbacks.map(feedback -> mapToFeedbackResponseWithQuestionFilter(feedback, 9L));
     }
 }

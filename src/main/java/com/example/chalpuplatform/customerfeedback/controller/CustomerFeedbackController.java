@@ -112,7 +112,7 @@ public class CustomerFeedbackController {
 
     @GetMapping("/store/{storeId}")
     @Operation(
-        summary = "사장님이 매장별 피드백 목록 조회하는 API",
+        summary = "사장님이 매장별 피드백(리뷰) 목록 조회하는 API",
         description = "특정 매장에 대한 모든 고객 피드백을 페이징으로 조회합니다. 매장 사장이 고객 반응을 확인할 때 사용합니다. 기본 20개씩 최신 순으로 정렬됩니다."
     )
     @ApiResponses({
@@ -132,13 +132,6 @@ public class CustomerFeedbackController {
     public ResponseEntity<ApiResponse<PageResponse<FeedbackResponse>>> getStoreFeedbacks(
             @Parameter(description = "매장 ID", example = "1")
             @PathVariable("storeId") Long storeId,
-            @Parameter(
-                description = "페이징 정보 (page=0부터 시작, size=페이지 사이즈, sort=정렬 기준)",
-                examples = @ExampleObject(
-                    name = "기본 예시",
-                    value = "page=0&size=20&sort=createdAt,desc"
-                )
-            )
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         
         Page<FeedbackResponse> responses = feedbackService.getStoreFeedbacks(storeId, pageable);
@@ -147,7 +140,7 @@ public class CustomerFeedbackController {
 
     @GetMapping("/food/{foodId}")
     @Operation(
-        summary = "사장님이 음식별 피드백 목록 조회하는 API",
+        summary = "사장님이 음식별 피드백(리뷰) 목록 조회하는 API",
         description = "특정 음식에 대한 모든 고객 피드백을 페이징으로 조회합니다. 매장 사장이 특정 음식에 대한 고객 반응을 확인할 때 사용합니다. 기본 20개씩 최신 순으로 정렬됩니다."
     )
     @ApiResponses({
@@ -167,13 +160,6 @@ public class CustomerFeedbackController {
     public ResponseEntity<ApiResponse<PageResponse<FeedbackResponse>>> getFoodFeedbacks(
             @Parameter(description = "음식 ID", example = "1")
             @PathVariable("foodId") Long foodId,
-            @Parameter(
-                description = "페이징 정보 (page=0부터 시작, size=페이지 사이즈, sort=정렬 기준)",
-                examples = @ExampleObject(
-                    name = "기본 예시",
-                    value = "page=0&size=20&sort=createdAt,desc"
-                )
-            )
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
         Page<FeedbackResponse> responses = feedbackService.getFoodFeedbacks(foodId, pageable);
