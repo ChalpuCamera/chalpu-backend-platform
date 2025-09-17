@@ -60,9 +60,10 @@ module "parameter_store" {
 # EC2 Module
 module "ec2" {
   source = "../../modules/compute/ec2"
-  
+
   environment                = var.environment
   instance_type             = var.instance_type
+  ami_id                    = var.ami_id
   key_name                  = var.key_name
   vpc_id                    = module.vpc.vpc_id
   subnet_id                 = "subnet-057b5df3446b515ca"  # ap-northeast-2a public subnet
