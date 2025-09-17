@@ -90,3 +90,15 @@ variable "sentry_dsn" {
   type        = string
   sensitive   = true
 }
+
+variable "gemini_api_key" {
+  description = "Google Gemini API key"
+  type        = string
+  sensitive   = true
+}
+
+variable "gemini_model" {
+  description = "Google Gemini model name"
+  type        = string
+  default     = "gemini-2.0-flash-latest"
+}

@@ -14,11 +14,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Schema(description = "피드백 응답")
-public class FeedbackResponse {
+@Schema(description = "사장님용 피드백 응답 (고객 정보 포함)")
+public class OwnerFeedbackResponse {
 
     @Schema(description = "피드백 ID", example = "1")
-    private Long id;
+    private Long feedbackId;
 
     @Schema(description = "사용자 ID", example = "1")
     private Long userId;
@@ -47,24 +47,29 @@ public class FeedbackResponse {
     @Schema(description = "사장님이 피드백을 조회했는지 여부", example = "false")
     private Boolean isViewed;
 
-    @Schema(description = "고객 매운맛 선호도 (1-5)", example = "3")
+    @Schema(description = "고객 매운맛 선호도 (피드백 당시, 1-5)", example = "3")
     private Integer spicyLevel;
 
-    @Schema(description = "고객 식사량 (1-5)", example = "4")
+    @Schema(description = "고객 식사량 (피드백 당시, 1-5)", example = "4")
     private Integer mealAmount;
 
-    @Schema(description = "고객 식사 지출 정도 (1-5)", example = "3")
+    @Schema(description = "고객 식사 지출 정도 (피드백 당시, 1-5)", example = "3")
     private Integer mealSpending;
 
-    public static FeedbackResponse from(CustomerFeedback feedback) {
-        return FeedbackResponse.builder()
-                .id(feedback.getId())
+    public static OwnerFeedbackResponse from(CustomerFeedback feedback) {
+        return OwnerFeedbackResponse.builder()
+                .feedbackId(feedback.getId())
                 .userId(feedback.getUser().getId())
                 .foodName(feedback.getFoodItem().getFoodName())
                 .storeName(feedback.getStore().getStoreName())
                 .userNickname(feedback.getUser().getNickname())
                 .surveyName(feedback.getSurvey().getSurveyName())
                 .createdAt(feedback.getCreatedAt())
+                .isViewed(feedback.getIsViewed())
+                // 스냅샷 값 사용 (피드백 작성 당시의 입맛)
+                .spicyLevel(feedback.getSpicyLevelSnapshot())
+                .mealAmount(feedback.getMealAmountSnapshot())
+                .mealSpending(feedback.getMealSpendingSnapshot())
                 .build();
     }
 }

@@ -185,3 +185,28 @@ resource "aws_ssm_parameter" "sentry_dsn" {
     Environment = var.environment
   }
 }
+
+# Gemini API Configuration
+resource "aws_ssm_parameter" "gemini_api_key" {
+  name        = "/chalpu-platform/${var.environment}/gemini-api-key"
+  description = "Google Gemini API key"
+  type        = "SecureString"
+  value       = var.gemini_api_key
+
+  tags = {
+    Name        = "chalpu-${var.environment}-gemini-api-key"
+    Environment = var.environment
+  }
+}
+
+resource "aws_ssm_parameter" "gemini_model" {
+  name        = "/chalpu-platform/${var.environment}/gemini-model"
+  description = "Google Gemini model name"
+  type        = "String"
+  value       = var.gemini_model
+
+  tags = {
+    Name        = "chalpu-${var.environment}-gemini-model"
+    Environment = var.environment
+  }
+}

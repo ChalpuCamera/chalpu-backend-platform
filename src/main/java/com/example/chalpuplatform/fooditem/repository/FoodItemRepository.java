@@ -26,4 +26,8 @@ public interface FoodItemRepository extends JpaRepository<FoodItem, Long> {
     // 권한 검증용 - storeId만 조회
     @Query("SELECT fi.store.id FROM FoodItem fi WHERE fi.id = :id AND fi.isActive = true")
     Optional<Long> findStoreIdByFoodItemId(@Param("id") Long id);
+
+    // 메뉴 추출을 위한 중복 체크용 메서드
+    @Query("SELECT fi FROM FoodItem fi WHERE fi.store.id = :storeId AND fi.foodName = :foodName AND fi.isActive = true")
+    Optional<FoodItem> findByStoreIdAndFoodName(@Param("storeId") Long storeId, @Param("foodName") String foodName);
 } 

@@ -37,7 +37,10 @@ public class FoodItemResponse {
 
     @Schema(description = "썸네일 URL", example = "https://chalpu.s3.ap-northeast-2.amazonaws.com/photos/stores/1/a1b2c3d4-e5f6-7890-1234-567890abcdef.jpg")
     private String thumbnailUrl;
-    
+
+    @Schema(description = "카테고리", example = "메인")
+    private String categoryName;
+
     @Schema(description = "생성 시간", example = "2024-01-15T09:30:00")
     private LocalDateTime createdAt;
     
@@ -52,6 +55,7 @@ public class FoodItemResponse {
                 .description(foodItem.getDescription())
                 .thumbnailUrl(foodItem.getThumbnailUrl())
                 .price(foodItem.getPrice())
+                .categoryName(foodItem.getCategory() != null ? foodItem.getCategory().getDescription() : null)
                 .isActive(foodItem.getIsActive())
                 .createdAt(foodItem.getCreatedAt())
                 .updatedAt(foodItem.getUpdatedAt())

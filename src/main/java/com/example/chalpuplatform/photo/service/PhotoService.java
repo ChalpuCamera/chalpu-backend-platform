@@ -233,4 +233,5 @@ public class PhotoService {
         final String fileExtension = fileName.substring(lastDotIndex);
         return "platform/" + UUID.randomUUID() + fileExtension;
     }
+
 }

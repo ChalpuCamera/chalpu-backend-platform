@@ -18,6 +18,9 @@ public class SurveyAnswerResponse {
     @Schema(description = "답변 ID", example = "1")
     private Long id;
 
+    @Schema(description = "질문 ID", example = "1")
+    private Long questionId;
+
     @Schema(description = "질문 내용", example = "음식의 맛은 어떠셨나요?")
     private String questionText;
 
@@ -33,6 +36,7 @@ public class SurveyAnswerResponse {
     public static SurveyAnswerResponse from(SurveyAnswer answer) {
         return SurveyAnswerResponse.builder()
                 .id(answer.getId())
+                .questionId(answer.getQuestion().getId())
                 .questionText(answer.getQuestion().getQuestionText())
                 .questionType(answer.getQuestion().getQuestionType())
                 .answerText(answer.getAnswerText())

@@ -11,6 +11,7 @@ import com.example.chalpuplatform.photo.repository.PhotoRepository;
 import com.example.chalpuplatform.store.domain.Store;
 import com.example.chalpuplatform.store.repository.StoreRepository;
 import com.example.chalpuplatform.store.service.UserStoreRoleService;
+import com.example.chalpuplatform.oauth.jwt.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -145,6 +146,31 @@ public class FoodItemService {
     private FoodItem findFoodItemByIdForValidation(Long foodId) {
         return foodItemRepository.findByIdAndIsActiveTrueWithoutJoin(foodId)
                 .orElseThrow(() -> new FoodException(ErrorMessage.FOOD_NOT_FOUND));
+    }
+
+    /**
+     * 음식 아이템 대표 사진 설정
+     */
+    @Transactional
+    public FoodItemResponse updateThumbnailUrl(Long foodItemId, String photoUrl, UserDetailsImpl userDetails) {
+        // 권한 검증
+        Long storeId = foodItemRepository.findStoreIdByFoodItemId(foodItemId)
+                .orElseThrow(() -> new FoodException(ErrorMessage.FOOD_NOT_FOUND));
+
+        if (!userStoreRoleService.canUserManageStore(userDetails.getId(), storeId)) {
+            throw new FoodException(ErrorMessage.STORE_ACCESS_DENIED);
+        }
+
+        FoodItem foodItem = foodItemRepository.findByIdAndIsActiveTrueWithoutJoin(foodItemId)
+                .orElseThrow(() -> new FoodException(ErrorMessage.FOOD_NOT_FOUND));
+
+        foodItem.setThumbnailUrl(photoUrl);
+        FoodItem savedFoodItem = foodItemRepository.save(foodItem);
+
+        log.info("음식 대표 사진 설정: foodItemId={}, photoUrl={}, userId={}",
+                foodItemId, photoUrl, userDetails.getId());
+
+        return FoodItemResponse.from(savedFoodItem);
     }
 
     /**

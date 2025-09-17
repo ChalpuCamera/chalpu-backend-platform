@@ -36,7 +36,11 @@ public class FoodItem extends BaseTimeEntity {
 
     private BigDecimal price;
     private String thumbnailUrl;
-    
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 50)
+    private FoodCategory category;
+
     @Builder.Default
     private Boolean isActive = true;
 
@@ -46,6 +50,7 @@ public class FoodItem extends BaseTimeEntity {
                 .store(store)
                 .foodName(request.getFoodName())
                 .description(request.getDescription())
+                .thumbnailUrl(request.getThumbnailUrl())
                 .price(request.getPrice())
                 .isActive(request.getIsActive() != null ? request.getIsActive() : true)
                 .build();

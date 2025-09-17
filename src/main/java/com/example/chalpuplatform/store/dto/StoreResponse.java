@@ -40,9 +40,9 @@ public class StoreResponse {
                 .storeId(store.getId())
                 .storeName(store.getStoreName())
                 .address(store.getAddress())
-                .baeminLink(store.getDeliveryPlatformLinks().getBaeminLink())
-                .yogiyoLink(store.getDeliveryPlatformLinks().getYogiyoLink())
-                .coupangEatsLink(store.getDeliveryPlatformLinks().getCoupangeatsLink())
+                .baeminLink(store.getDeliveryPlatformLinks().getBaeminLink() != null ? store.getDeliveryPlatformLinks().getBaeminLink() : "")
+                .yogiyoLink(store.getDeliveryPlatformLinks().getYogiyoLink() != null ? store.getDeliveryPlatformLinks().getYogiyoLink() : "")
+                .coupangEatsLink(store.getDeliveryPlatformLinks().getCoupangeatsLink() != null ? store.getDeliveryPlatformLinks().getCoupangeatsLink() : "")
                 .build();
     }
 } 

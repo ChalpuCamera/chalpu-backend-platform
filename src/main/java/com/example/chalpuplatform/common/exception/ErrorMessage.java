@@ -189,7 +189,14 @@ public enum ErrorMessage {
     JAR_INSUFFICIENT_DATA(HttpStatus.BAD_REQUEST, "JAR 분석을 위한 데이터가 부족합니다."),
     JAR_INVALID_QUESTION(HttpStatus.BAD_REQUEST, "JAR 분석 대상이 아닌 질문입니다."),
     JAR_ANALYSIS_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "JAR 분석 중 오류가 발생했습니다."),
-    JAR_INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "유효하지 않은 날짜 범위입니다.");
+    JAR_INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "유효하지 않은 날짜 범위입니다."),
+
+    // 메뉴 추출 관련 에러
+    MENU_EXTRACTION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "메뉴 추출에 실패했습니다."),
+    MENU_EXTRACTION_ALREADY_IN_PROGRESS(HttpStatus.CONFLICT, "이미 메뉴 추출이 진행 중입니다."),
+    EXTRACTION_PROGRESS_NOT_FOUND(NOT_FOUND, "추출 진행 상태를 찾을 수 없습니다."),
+    MENU_PARSING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "메뉴 텍스트 파싱에 실패했습니다."),
+    FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

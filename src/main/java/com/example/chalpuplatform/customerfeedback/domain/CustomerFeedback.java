@@ -49,7 +49,21 @@ public class CustomerFeedback extends BaseTimeEntity {
     
     @Column(name = "overall_satisfaction")
     private Float overallSatisfaction;
-    
+
+    @Builder.Default
+    @Column(name = "is_viewed")
+    private Boolean isViewed = false;
+
+    // 피드백 작성 시점의 고객 입맛 스냅샷
+    @Column(name = "spicy_level_snapshot")
+    private Integer spicyLevelSnapshot;
+
+    @Column(name = "meal_amount_snapshot")
+    private Integer mealAmountSnapshot;
+
+    @Column(name = "meal_spending_snapshot")
+    private Integer mealSpendingSnapshot;
+
     public enum FeedbackStatus {
         SUBMITTED("제출"),
         APPROVED("승인"),
@@ -76,17 +90,6 @@ public class CustomerFeedback extends BaseTimeEntity {
                 .survey(survey)
                 .build();
     }
-    
-    public static CustomerFeedback createFeedbackWithSatisfaction(FoodItem foodItem, Store store, 
-                                                User user, Survey survey, Float satisfaction) {
-        return CustomerFeedback.builder()
-                .foodItem(foodItem)
-                .store(store)
-                .user(user)
-                .survey(survey)
-                .overallSatisfaction(satisfaction)
-                .build();
-    }
 
     public void deactivate() {
         this.isActive = false;
@@ -94,5 +97,13 @@ public class CustomerFeedback extends BaseTimeEntity {
 
     public boolean isActive() {
         return this.isActive != null && this.isActive;
+    }
+
+    public void markAsViewed() {
+        this.isViewed = true;
+    }
+
+    public boolean isViewed() {
+        return this.isViewed != null && this.isViewed;
     }
 }
