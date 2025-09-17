@@ -12,8 +12,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 @EnableAsync
 public class AsyncConfig {
 
-    @Bean(name = "menuExecutor")
-    public TaskExecutor menuExecutor() {
+    @Bean(name = "menuExtractionExecutor")
+    public TaskExecutor menuExtractionExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 
         // Micro 인스턴스 (1 vCPU, 1GB RAM) 최적화 설정
