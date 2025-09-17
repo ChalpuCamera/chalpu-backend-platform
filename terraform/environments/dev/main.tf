@@ -36,7 +36,7 @@ module "iam" {
 # Parameter Store Module
 module "parameter_store" {
   source = "../../modules/secret/parameter-store"
-  
+
   environment                 = var.environment
   db_host                    = var.db_host
   db_port                    = var.db_port
@@ -53,6 +53,8 @@ module "parameter_store" {
   s3_bucket                  = var.s3_bucket
   cloudfront_domain          = var.cloudfront_domain
   sentry_dsn                 = var.sentry_dsn
+  gemini_api_key             = var.gemini_api_key
+  gemini_model               = var.gemini_model
 }
 
 # EC2 Module

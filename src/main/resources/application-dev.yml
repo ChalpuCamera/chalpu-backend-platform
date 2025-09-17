@@ -97,5 +97,5 @@ sentry:
 # Gemini API Configuration
 gemini:
   api-key: ${gemini-api-key}
-  model: gemini-2.0-flash-latest
+  model: ${gemini-model}
   api-url: https://generativelanguage.googleapis.com/v1beta
