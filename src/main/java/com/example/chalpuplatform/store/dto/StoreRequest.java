@@ -27,4 +27,7 @@ public class StoreRequest {
 
     @Schema(description = "쿠팡이츠 링크", example = "https://coupangeats.com/store/12345")
     private String coupangeatsLink;
+
+    @Schema(description = "가게 설명", example = "저희 가게는 신선한 재료로 음식을 만듭니다.")
+    private String description;
 } 
