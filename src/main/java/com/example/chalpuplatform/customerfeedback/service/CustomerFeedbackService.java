@@ -24,6 +24,9 @@ import com.example.chalpuplatform.fooditem.domain.FoodItem;
 import com.example.chalpuplatform.fooditem.repository.FoodItemRepository;
 import com.example.chalpuplatform.store.domain.Store;
 import com.example.chalpuplatform.store.repository.StoreRepository;
+import com.example.chalpuplatform.store.service.UserStoreRoleService;
+import com.example.chalpuplatform.user.domain.CustomerTaste;
+import com.example.chalpuplatform.oauth.jwt.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,12 +64,13 @@ public class CustomerFeedbackService {
     private final SurveyRepository surveyRepository;
     private final SurveyQuestionRepository questionRepository;
     private final S3Presigner s3Presigner;
+    private final UserStoreRoleService userStoreRoleService;
     
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
-    public FeedbackResponse createFeedback(Long userId, FeedbackCreateRequest request) {
-        User user = userRepository.findById(userId)
+    public CustomerFeedbackResponse createFeedback(UserDetailsImpl userDetails, FeedbackCreateRequest request) {
+        User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new UserException(ErrorMessage.USER_NOT_FOUND));
 
         FoodItem foodItem = foodItemRepository.findById(request.getFoodId())
@@ -79,6 +83,16 @@ public class CustomerFeedbackService {
                 .orElseThrow(() -> new SurveyException(ErrorMessage.SURVEY_NOT_FOUND));
 
         CustomerFeedback feedback = CustomerFeedback.createFeedback(foodItem, store, user, survey);
+        feedback.setIsViewed(false); // 새 피드백은 읽지 않은 상태로 설정
+
+        // 현재 고객 입맛을 스냅샷으로 저장
+        if (user.getUserProfile() != null && user.getUserProfile().getCustomerTaste() != null) {
+            CustomerTaste taste = user.getUserProfile().getCustomerTaste();
+            feedback.setSpicyLevelSnapshot(taste.getSpicyLevel());
+            feedback.setMealAmountSnapshot(taste.getMealAmount());
+            feedback.setMealSpendingSnapshot(taste.getMealSpending());
+        }
+
         CustomerFeedback savedFeedback = feedbackRepository.save(feedback);
 
         saveSurveyAnswers(savedFeedback, request.getSurveyAnswers());
@@ -92,10 +106,10 @@ public class CustomerFeedbackService {
             user.getUserProfile().incrementRewardCount();
         }
 
-        log.info("고객 피드백 생성 완료: feedbackId={}, userId={}, foodId={}, reward_count_earned=1", 
-                savedFeedback.getId(), userId, request.getFoodId());
+        log.info("고객 피드백 생성 완료: feedbackId={}, userId={}, foodId={}, reward_count_earned=1",
+                savedFeedback.getId(), userDetails.getId(), request.getFoodId());
 
-        return mapToFeedbackResponse(savedFeedback);
+        return mapToCustomerFeedbackResponse(savedFeedback);
     }
 
     private void saveSurveyAnswers(CustomerFeedback feedback, List<SurveyAnswerRequest> answerRequests) {
@@ -153,74 +167,86 @@ public class CustomerFeedbackService {
     }
 
     @Transactional(readOnly = true)
-    public List<FeedbackResponse> getUserFeedbacks(Long userId) {
+    public List<CustomerFeedbackResponse> getUserFeedbacks(UserDetailsImpl userDetails) {
         List<CustomerFeedback> feedbacks = feedbackRepository
-                .findByUserIdAndIsActiveTrueOrderByCreatedAtDesc(userId);
+                .findByUserIdAndIsActiveTrueOrderByCreatedAtDesc(userDetails.getId());
 
         return feedbacks.stream()
-                .map(this::mapToFeedbackResponse)
+                .map(this::mapToCustomerFeedbackResponse)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public Page<FeedbackResponse> getUserFeedbacks(Long userId, Pageable pageable) {
+    public Page<CustomerFeedbackResponse> getUserFeedbacks(UserDetailsImpl userDetails, Pageable pageable) {
         Page<CustomerFeedback> feedbacks = feedbackRepository
-                .findByUserIdAndIsActiveTrueOrderByCreatedAtDesc(userId, pageable);
+                .findByUserIdAndIsActiveTrueOrderByCreatedAtDesc(userDetails.getId(), pageable);
 
-        return feedbacks.map(this::mapToFeedbackResponse);
+        return feedbacks.map(this::mapToCustomerFeedbackResponse);
     }
 
     @Transactional(readOnly = true)
-    public Page<FeedbackResponse> getStoreFeedbacks(Long storeId, Pageable pageable) {
+    public Page<OwnerFeedbackResponse> getStoreFeedbacks(Long storeId, UserDetailsImpl userDetails, Pageable pageable) {
+        // 사장님 권한 확인
+        if (!userStoreRoleService.canUserManageStore(userDetails.getId(), storeId)) {
+            throw new FeedbackException(ErrorMessage.STORE_ACCESS_DENIED);
+        }
+
         Page<CustomerFeedback> feedbacks = feedbackRepository
                 .findByStoreIdAndIsActiveTrueOrderByCreatedAtDesc(storeId, pageable);
 
-        return feedbacks.map(feedback -> mapToFeedbackResponseWithQuestionFilter(feedback, 9L));
+        return feedbacks.map(this::mapToOwnerFeedbackResponse);
     }
 
     @Transactional(readOnly = true)
-    public FeedbackResponse getFeedbackById(Long feedbackId) {
+    public CustomerFeedbackResponse getFeedbackById(Long feedbackId) {
         CustomerFeedback feedback = feedbackRepository.findById(feedbackId)
                 .orElseThrow(() -> new FeedbackException(ErrorMessage.FEEDBACK_NOT_FOUND));
 
-        return mapToFeedbackResponse(feedback);
+        return mapToCustomerFeedbackResponse(feedback);
     }
 
-    private FeedbackResponse mapToFeedbackResponse(CustomerFeedback feedback) {
+
+    // 고객용 응답 매핑 (고객 정보 제외)
+    private CustomerFeedbackResponse mapToCustomerFeedbackResponse(CustomerFeedback feedback) {
         List<SurveyAnswer> answers = answerRepository.findByFeedbackIdOrderByQuestionId(feedback.getId());
         List<FeedbackPhoto> photos = photoRepository.findByFeedbackIdOrderByCreatedAtAsc(feedback.getId());
 
-        FeedbackResponse response = FeedbackResponse.from(feedback);
-        response.setSurveyAnswers(answers.stream()
-                .map(SurveyAnswerResponse::from)
-                .collect(Collectors.toList()));
-        response.setPhotoUrls(photos.stream()
-                .map(FeedbackPhoto::getImageUrl)
-                .collect(Collectors.toList()));
-
-        return response;
+        return CustomerFeedbackResponse.builder()
+                .feedbackId(feedback.getId())
+                .foodName(feedback.getFoodItem().getFoodName())
+                .storeName(feedback.getStore().getStoreName())
+                .surveyName(feedback.getSurvey().getSurveyName())
+                .createdAt(feedback.getCreatedAt())
+                .surveyAnswers(answers.stream()
+                        .map(SurveyAnswerResponse::from)
+                        .collect(Collectors.toList()))
+                .photoUrls(photos.stream()
+                        .map(FeedbackPhoto::getImageUrl)
+                        .collect(Collectors.toList()))
+                .build();
     }
 
-    private FeedbackResponse mapToFeedbackResponseWithQuestionFilter(CustomerFeedback feedback, Long questionId) {
-        // Repository에서 특정 questionId에 대한 답변만 조회
-        Optional<SurveyAnswer> answerOpt = answerRepository.findByFeedbackIdAndQuestionId(feedback.getId(), questionId);
+    // 사장님용 응답 매핑 (고객 정보 포함)
+    private OwnerFeedbackResponse mapToOwnerFeedbackResponse(CustomerFeedback feedback) {
+        List<SurveyAnswer> answers = answerRepository.findByFeedbackIdOrderByQuestionId(feedback.getId());
         List<FeedbackPhoto> photos = photoRepository.findByFeedbackIdOrderByCreatedAtAsc(feedback.getId());
 
-        FeedbackResponse response = FeedbackResponse.from(feedback);
+        // 9번 질문 답변 찾기 (사장님께 한마디)
+        String ownerMessage = answers.stream()
+                .filter(answer -> answer.getQuestion().getId().equals(9L))
+                .findFirst()
+                .map(SurveyAnswer::getAnswerText)
+                .orElse(null);
 
-        // questionId에 해당하는 답변이 있으면 리스트에 추가
-        if (answerOpt.isPresent()) {
-            response.setSurveyAnswers(List.of(SurveyAnswerResponse.from(answerOpt.get())));
-        } else {
-            response.setSurveyAnswers(List.of());
-        }
-
+        OwnerFeedbackResponse response = OwnerFeedbackResponse.from(feedback);
+        response.setOwnerMessage(ownerMessage);
         response.setPhotoUrls(photos.stream()
                 .map(FeedbackPhoto::getImageUrl)
                 .collect(Collectors.toList()));
 
         return response;
     }
+
 
     private String createFeedbackPhotoS3Key(final String fileName) {
         Objects.requireNonNull(fileName, "fileName must not be null");
@@ -246,14 +272,34 @@ public class CustomerFeedbackService {
         return s3Presigner.presignPutObject(presignRequest).url();
     }
 
-    public FeedbackPhotosPresignedUrlResponse generateMultipleFeedbackPhotosPresignedUrl(final Long userId, final FeedbackPhotosUploadRequest request) {
+    // 다건 읽음 처리 메서드 추가
+    @Transactional
+    public void markFeedbacksAsViewed(List<Long> feedbackIds, UserDetailsImpl userDetails) {
+        List<CustomerFeedback> feedbacks = feedbackRepository.findAllById(feedbackIds);
+
+        for (CustomerFeedback feedback : feedbacks) {
+            // 사장님 권한 확인
+            if (!userStoreRoleService.canUserManageStore(userDetails.getId(), feedback.getStore().getId())) {
+                log.warn("권한 없는 피드백 읽음 처리 시도: feedbackId={}, userId={}",
+                    feedback.getId(), userDetails.getId());
+                continue;
+            }
+
+            feedback.markAsViewed();
+        }
+
+        feedbackRepository.saveAll(feedbacks);
+        log.info("피드백 다건 읽음 처리: count={}, userId={}", feedbackIds.size(), userDetails.getId());
+    }
+
+    public FeedbackPhotosPresignedUrlResponse generateMultipleFeedbackPhotosPresignedUrl(final UserDetailsImpl userDetails, final FeedbackPhotosUploadRequest request) {
         try {
             List<FeedbackPhotosPresignedUrlResponse.FeedbackPhotoUrlInfo> photoUrls = request.getFileNames().stream()
                     .map(fileName -> {
                         try {
                             String s3Key = createFeedbackPhotoS3Key(fileName);
                             URL presignedUrl = createPresignedUrl(s3Key);
-                            
+
                             return FeedbackPhotosPresignedUrlResponse.FeedbackPhotoUrlInfo.builder()
                                     .originalFileName(fileName)
                                     .presignedUrl(presignedUrl.toString())
@@ -261,29 +307,82 @@ public class CustomerFeedbackService {
                                     .build();
                         } catch (Exception e) {
                             log.error("event=single_feedback_photo_presigned_url_generation_failed, user_id={}, file_name={}, error_message={}",
-                                    userId, fileName, e.getMessage(), e);
+                                    userDetails.getId(), fileName, e.getMessage(), e);
                             throw new FeedbackException(ErrorMessage.PRESIGNED_URL_GENERATION_FAILED);
                         }
                     })
                     .collect(Collectors.toList());
-            
+
             log.info("event=multiple_feedback_photos_presigned_urls_generated, user_id={}, file_count={}",
-                    userId, request.getFileNames().size());
-            
+                    userDetails.getId(), request.getFileNames().size());
+
             return FeedbackPhotosPresignedUrlResponse.builder()
                     .photoUrls(photoUrls)
                     .build();
         } catch (Exception e) {
             log.error("event=multiple_feedback_photos_presigned_urls_generation_failed, user_id={}, file_count={}, error_message={}",
-                    userId, request.getFileNames() != null ? request.getFileNames().size() : 0, e.getMessage(), e);
+                    userDetails.getId(), request.getFileNames() != null ? request.getFileNames().size() : 0, e.getMessage(), e);
             throw new FeedbackException(ErrorMessage.PRESIGNED_URL_GENERATION_FAILED);
         }
     }
 
-    public Page<FeedbackResponse> getFoodFeedbacks(Long foodId, Pageable pageable) {
+    public Page<OwnerFeedbackResponse> getFoodFeedbacks(Long foodId, UserDetailsImpl userDetails, Pageable pageable) {
+        // 음식이 속한 매장 조회
+        FoodItem foodItem = foodItemRepository.findById(foodId)
+                .orElseThrow(() -> new FeedbackException(ErrorMessage.FOODITEM_NOT_FOUND));
+
+        // 사장님 권한 확인
+        if (!userStoreRoleService.canUserManageStore(userDetails.getId(), foodItem.getStore().getId())) {
+            throw new FeedbackException(ErrorMessage.STORE_ACCESS_DENIED);
+        }
+
         Page<CustomerFeedback> feedbacks = feedbackRepository
                 .findByFoodItemIdAndIsActiveTrueOrderByCreatedAtDesc(foodId, pageable);
 
-        return feedbacks.map(feedback -> mapToFeedbackResponseWithQuestionFilter(feedback, 9L));
+        return feedbacks.map(this::mapToOwnerFeedbackResponse);
+    }
+
+
+    // 매장의 음식별 읽지 않은 피드백 개수 조회
+    @Transactional(readOnly = true)
+    public List<FeedbackUnreadCountResponse> getUnreadFeedbackCountsByStore(Long storeId, UserDetailsImpl userDetails) {
+        // 사장님 권한 확인
+        if (!userStoreRoleService.canUserManageStore(userDetails.getId(), storeId)) {
+            throw new FeedbackException(ErrorMessage.STORE_ACCESS_DENIED);
+        }
+
+        List<Object[]> results = feedbackRepository.findUnreadCountsByStoreId(storeId);
+
+        return results.stream()
+                .map(result -> FeedbackUnreadCountResponse.builder()
+                        .foodItemId((Long) result[0])
+                        .foodName((String) result[1])
+                        .unreadCount((Long) result[2])
+                        .totalCount((Long) result[3])
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    // 고객 입맛 프로필 조회 (피드백 상세에서)
+    @Transactional(readOnly = true)
+    public OwnerFeedbackResponse getFeedbackWithCustomerTaste(Long feedbackId, UserDetailsImpl userDetails) {
+        CustomerFeedback feedback = feedbackRepository.findByIdWithUserProfile(feedbackId);
+
+        if (feedback == null) {
+            throw new FeedbackException(ErrorMessage.FEEDBACK_NOT_FOUND);
+        }
+
+        // 사장님 권한 확인
+        if (!userStoreRoleService.canUserManageStore(userDetails.getId(), feedback.getStore().getId())) {
+            throw new FeedbackException(ErrorMessage.STORE_ACCESS_DENIED);
+        }
+
+        // 조회 시 읽음 처리
+        if (!feedback.isViewed()) {
+            feedback.markAsViewed();
+            feedbackRepository.save(feedback);
+        }
+
+        return mapToOwnerFeedbackResponse(feedback);
     }
 }
