@@ -1,0 +1,41 @@
+language: "ko"
+reviews:
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  path_filters:
+    - "!**/*.json"
+    - "!**/*.yml"
+    - "!**/*.yaml"
+    - "!**/*.xml"
+    - "!**/*.lock"
+    - "!**/*.sum"
+    - "!**/*.mod"
+  path_instructions:
+    - path: "**/*.java"
+      instructions: |
+        - Spring Boot 3.x 베스트 프랙티스를 따르는지 확인
+        - JPA 엔티티의 N+1 문제 체크
+        - @Transactional 적절한 사용 검증
+        - 보안 취약점 확인 (SQL Injection, XSS 등)
+        - 예외 처리가 적절한지 확인
+        - 비동기 처리 시 스레드 안정성 검증
+    - path: "**/service/**/*.java"
+      instructions: |
+        - 비즈니스 로직의 트랜잭션 경계 확인
+        - 서비스 계층의 책임 분리 검증
+        - 순환 참조 여부 체크
+    - path: "**/controller/**/*.java"
+      instructions: |
+        - RESTful API 설계 원칙 준수 여부
+        - 적절한 HTTP 상태 코드 사용
+        - 입력 검증 및 DTO 사용 확인
+    - path: "**/repository/**/*.java"
+      instructions: |
+        - 쿼리 최적화 여부 확인
+        - 인덱스 활용 가능성 검토
+        - Fetch Join 적절성 검증
+chat:
+  auto_reply: true

@@ -93,3 +93,9 @@ sentry:
   send-default-pii: false
   attach-threads: true
   attach-stacktrace: true
+
+# Gemini API Configuration
+gemini:
+  api-key: ${gemini-api-key}
+  model: gemini-2.0-flash-latest
+  api-url: https://generativelanguage.googleapis.com/v1beta
