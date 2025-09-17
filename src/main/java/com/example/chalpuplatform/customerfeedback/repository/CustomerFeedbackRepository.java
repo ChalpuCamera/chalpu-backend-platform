@@ -20,11 +20,26 @@ public interface CustomerFeedbackRepository extends JpaRepository<CustomerFeedba
     Page<CustomerFeedback> findByStoreIdAndIsActiveTrueOrderByCreatedAtDesc(Long storeId, Pageable pageable);
 
     Page<CustomerFeedback> findByFoodItemIdAndIsActiveTrueOrderByCreatedAtDesc(Long foodItemId, Pageable pageable);
-    
-    @Query("SELECT cf FROM CustomerFeedback cf JOIN FETCH cf.user JOIN FETCH cf.foodItem WHERE cf.store.id = :storeId AND cf.isActive = true ORDER BY cf.createdAt DESC")
-    List<CustomerFeedback> findByStoreIdWithUserAndFoodItem(@Param("storeId") Long storeId);
-    
-    int countByUserIdAndIsActiveTrue(Long userId);
-    
-    int countByStoreIdAndIsActiveTrue(Long storeId);
+
+    // 매장의 모든 음식별 읽지 않은 피드백 개수 조회
+    @Query("""
+        SELECT f.id as foodItemId, f.foodName as foodName,
+               COUNT(CASE WHEN cf.isViewed = false THEN 1 END) as unreadCount,
+               COUNT(cf) as totalCount
+        FROM FoodItem f
+        LEFT JOIN CustomerFeedback cf ON cf.foodItem = f AND cf.isActive = true
+        WHERE f.store.id = :storeId AND f.isActive = true
+        GROUP BY f.id, f.foodName
+        ORDER BY unreadCount DESC, f.foodName ASC
+    """)
+    List<Object[]> findUnreadCountsByStoreId(@Param("storeId") Long storeId);
+
+    // 특정 피드백과 관련 엔티티들을 함께 조회
+    @Query("""
+        SELECT cf FROM CustomerFeedback cf
+        JOIN FETCH cf.user u
+        LEFT JOIN FETCH u.userProfile up
+        WHERE cf.id = :feedbackId AND cf.isActive = true
+    """)
+    CustomerFeedback findByIdWithUserProfile(@Param("feedbackId") Long feedbackId);
 }
