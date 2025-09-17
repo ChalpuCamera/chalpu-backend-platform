@@ -34,6 +34,9 @@ public class Store extends BaseTimeEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
+    @Schema(description = "가게 설명",nullable = true)
+    private String description;
+
     @Embedded
     private DeliveryPlatformLinks deliveryPlatformLinks;
     
@@ -48,6 +51,7 @@ public class Store extends BaseTimeEntity {
         return Store.builder()
                 .storeName(storeRequest.getStoreName())
                 .address(storeRequest.getAddress())
+                .description(storeRequest.getDescription())
                 .deliveryPlatformLinks(DeliveryPlatformLinks.builder()
                         .baeminLink(storeRequest.getBaeminLink())
                         .yogiyoLink(storeRequest.getYogiyoLink())
@@ -59,7 +63,8 @@ public class Store extends BaseTimeEntity {
     public void updateStore(StoreRequest storeRequest) {
         this.storeName = storeRequest.getStoreName();
         this.address = storeRequest.getAddress();
-        
+        this.description = storeRequest.getDescription();
+
         if (this.deliveryPlatformLinks == null) {
             this.deliveryPlatformLinks = new DeliveryPlatformLinks();
         }

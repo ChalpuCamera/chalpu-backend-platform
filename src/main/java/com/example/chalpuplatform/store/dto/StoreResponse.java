@@ -33,6 +33,9 @@ public class StoreResponse {
 
     @Schema(description = "쿠팡이츠 링크", example = "https://www.coupang.com/restaurant/12345")
     private String coupangEatsLink;
+
+    @Schema(description = "가게 설명", example = "저희 가게는 신선한 재료로 음식을 만듭니다.")
+    private String description;
     
 
     public static StoreResponse from(Store store) {
@@ -40,6 +43,7 @@ public class StoreResponse {
                 .storeId(store.getId())
                 .storeName(store.getStoreName())
                 .address(store.getAddress())
+                .description(store.getDescription())
                 .baeminLink(store.getDeliveryPlatformLinks().getBaeminLink() != null ? store.getDeliveryPlatformLinks().getBaeminLink() : "")
                 .yogiyoLink(store.getDeliveryPlatformLinks().getYogiyoLink() != null ? store.getDeliveryPlatformLinks().getYogiyoLink() : "")
                 .coupangEatsLink(store.getDeliveryPlatformLinks().getCoupangeatsLink() != null ? store.getDeliveryPlatformLinks().getCoupangeatsLink() : "")
