@@ -12,8 +12,6 @@ import java.util.List;
 
 @Repository
 public interface CustomerFeedbackRepository extends JpaRepository<CustomerFeedback, Long> {
-
-    List<CustomerFeedback> findByUserIdAndIsActiveTrueOrderByCreatedAtDesc(Long userId);
     
     Page<CustomerFeedback> findByUserIdAndIsActiveTrueOrderByCreatedAtDesc(Long userId, Pageable pageable);
     
@@ -38,8 +36,45 @@ public interface CustomerFeedbackRepository extends JpaRepository<CustomerFeedba
     @Query("""
         SELECT cf FROM CustomerFeedback cf
         JOIN FETCH cf.user u
-        LEFT JOIN FETCH u.userProfile up
         WHERE cf.id = :feedbackId AND cf.isActive = true
     """)
     CustomerFeedback findByIdWithUserProfile(@Param("feedbackId") Long feedbackId);
+
+    // 매장 피드백 조회 시 연관 엔티티 페치 조인
+    @Query("""
+        SELECT cf FROM CustomerFeedback cf
+        LEFT JOIN FETCH cf.foodItem
+        LEFT JOIN FETCH cf.store
+        LEFT JOIN FETCH cf.user
+        LEFT JOIN FETCH cf.survey
+        WHERE cf.store.id = :storeId
+        AND cf.isActive = true
+        ORDER BY cf.createdAt DESC
+    """)
+    Page<CustomerFeedback> findByStoreIdWithDetails(@Param("storeId") Long storeId, Pageable pageable);
+
+    // 사용자 피드백 조회 시 연관 엔티티 페치 조인
+    @Query("""
+        SELECT cf FROM CustomerFeedback cf
+        LEFT JOIN FETCH cf.foodItem
+        LEFT JOIN FETCH cf.store
+        LEFT JOIN FETCH cf.survey
+        WHERE cf.user.id = :userId
+        AND cf.isActive = true
+        ORDER BY cf.createdAt DESC
+    """)
+    Page<CustomerFeedback> findByUserIdWithDetails(@Param("userId") Long userId, Pageable pageable);
+
+    // 음식별 피드백 조회 시 연관 엔티티 페치 조인
+    @Query("""
+        SELECT cf FROM CustomerFeedback cf
+        LEFT JOIN FETCH cf.foodItem
+        LEFT JOIN FETCH cf.store
+        LEFT JOIN FETCH cf.user u
+        LEFT JOIN FETCH cf.survey
+        WHERE cf.foodItem.id = :foodItemId
+        AND cf.isActive = true
+        ORDER BY cf.createdAt DESC
+    """)
+    Page<CustomerFeedback> findByFoodItemIdWithDetails(@Param("foodItemId") Long foodItemId, Pageable pageable);
 }
