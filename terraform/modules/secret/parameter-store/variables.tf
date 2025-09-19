@@ -61,16 +61,28 @@ variable "kakao_client_secret" {
   sensitive   = true
 }
 
-variable "oauth2_redirect_success_url" {
-  description = "OAuth2 redirect success URL"
+variable "oauth2_redirect_success_path" {
+  description = "OAuth2 redirect success path"
   type        = string
-  default     = "https://chalpu.com/login/success"
+  default     = "/oauth2/success"
 }
 
-variable "oauth2_redirect_failure_url" {
-  description = "OAuth2 redirect failure URL"
+variable "oauth2_redirect_failure_path" {
+  description = "OAuth2 redirect failure path"
   type        = string
-  default     = "https://chalpu.com/login/failure"
+  default     = "/oauth2/failure"
+}
+
+variable "oauth2_owner_domain" {
+  description = "OAuth2 owner domain"
+  type        = string
+  default     = "owner.chalpu.com"
+}
+
+variable "oauth2_customer_domain" {
+  description = "OAuth2 customer domain"
+  type        = string
+  default     = "customer.chalpu.com"
 }
 
 variable "s3_bucket" {

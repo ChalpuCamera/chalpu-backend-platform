@@ -67,6 +67,14 @@ server:
   tomcat:
     use-relative-redirects: true
 
+# OAuth2 Redirect URLs
+oauth2:
+  redirect:
+    success-path: ${OAUTH2_REDIRECT_SUCCESS_PATH}
+    failure-path: ${OAUTH2_REDIRECT_FAILURE_PATH}
+    owner-domain: ${OAUTH2_OWNER_DOMAIN}
+    customer-domain: ${OAUTH2_CUSTOMER_DOMAIN}
+
 management:
   endpoints:
     web:
@@ -82,11 +90,6 @@ management:
       export:
         enabled: true
 
-# OAuth2 Redirect URLs
-oauth2:
-  redirect:
-    success-url: ${OAUTH2_REDIRECT_SUCCESS_URL}
-    failure-url: ${OAUTH2_REDIRECT_FAILURE_URL}
 
 fcm:
   service-account-key-json: ${FCM_SERVICE_ACCOUNT_KEY_JSON}

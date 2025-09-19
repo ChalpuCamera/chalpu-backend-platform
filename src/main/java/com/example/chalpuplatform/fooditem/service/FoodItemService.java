@@ -64,22 +64,16 @@ public class FoodItemService {
      */
     @Transactional
     public FoodItemResponse createFoodItem(Long storeId, FoodItemRequest foodItemRequest, Long userId) {
-        try {
-            validateUserStoreAccess(userId, storeId);
-            Store store = findStoreById(storeId);
-            
-            FoodItem foodItem = FoodItem.createFoodItem(store, foodItemRequest);
-            FoodItem savedFoodItem = foodItemRepository.save(foodItem);
-            
-            log.info("event=food_item_created, food_item_id={}, store_id={}, user_id={}", 
-                    savedFoodItem.getId(), storeId, userId);
-            
-            return FoodItemResponse.from(savedFoodItem);
-        } catch (Exception e) {
-            log.error("event=food_item_creation_failed, store_id={}, user_id={}, error_message={}", 
-                    storeId, userId, e.getMessage(), e);
-            throw new FoodException(ErrorMessage.FOOD_CREATE_FAILED);
-        }
+        validateUserStoreAccess(userId, storeId);
+        Store store = findStoreById(storeId);
+
+        FoodItem foodItem = FoodItem.createFoodItem(store, foodItemRequest);
+        FoodItem savedFoodItem = foodItemRepository.save(foodItem);
+
+        log.info("event=food_item_created, food_item_id={}, store_id={}, user_id={}",
+                savedFoodItem.getId(), storeId, userId);
+
+        return FoodItemResponse.from(savedFoodItem);
     }
 
     /**

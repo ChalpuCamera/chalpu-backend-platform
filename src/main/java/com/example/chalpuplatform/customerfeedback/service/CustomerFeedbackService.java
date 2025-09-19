@@ -9,6 +9,7 @@ import com.example.chalpuplatform.customerfeedback.repository.FeedbackPhotoRepos
 import com.example.chalpuplatform.user.domain.User;
 import com.example.chalpuplatform.user.domain.UserProfile;
 import com.example.chalpuplatform.user.repository.UserRepository;
+import com.example.chalpuplatform.user.repository.UserProfileRepository;
 
 import com.example.chalpuplatform.survey.domain.Survey;
 import com.example.chalpuplatform.survey.domain.SurveyAnswer;
@@ -46,6 +47,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Optional;
+import java.util.Collections;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -59,6 +61,7 @@ public class CustomerFeedbackService {
     private final FeedbackPhotoRepository photoRepository;
     private final SurveyAnswerRepository answerRepository;
     private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
     private final FoodItemRepository foodItemRepository;
     private final StoreRepository storeRepository;
     private final SurveyRepository surveyRepository;
@@ -86,12 +89,14 @@ public class CustomerFeedbackService {
         feedback.setIsViewed(false); // 새 피드백은 읽지 않은 상태로 설정
 
         // 현재 고객 입맛을 스냅샷으로 저장
-        if (user.getUserProfile() != null && user.getUserProfile().getCustomerTaste() != null) {
-            CustomerTaste taste = user.getUserProfile().getCustomerTaste();
-            feedback.setSpicyLevelSnapshot(taste.getSpicyLevel());
-            feedback.setMealAmountSnapshot(taste.getMealAmount());
-            feedback.setMealSpendingSnapshot(taste.getMealSpending());
-        }
+        userProfileRepository.findByUserId(user.getId()).ifPresent(userProfile -> {
+            if (userProfile.getCustomerTaste() != null) {
+                CustomerTaste taste = userProfile.getCustomerTaste();
+                feedback.setSpicyLevelSnapshot(taste.getSpicyLevel());
+                feedback.setMealAmountSnapshot(taste.getMealAmount());
+                feedback.setMealSpendingSnapshot(taste.getMealSpending());
+            }
+        });
 
         CustomerFeedback savedFeedback = feedbackRepository.save(feedback);
 
@@ -101,10 +106,11 @@ public class CustomerFeedbackService {
             saveFeedbackPhotos(savedFeedback, request.getPhotoS3Keys());
         }
 
-        if (user.getUserProfile() != null) {
-            user.getUserProfile().incrementFeedbackCount();
-            user.getUserProfile().incrementRewardCount();
-        }
+        userProfileRepository.findByUserId(user.getId()).ifPresent(userProfile -> {
+            userProfile.incrementFeedbackCount();
+            userProfile.incrementRewardCount();
+            userProfileRepository.save(userProfile);
+        });
 
         log.info("고객 피드백 생성 완료: feedbackId={}, userId={}, foodId={}, reward_count_earned=1",
                 savedFeedback.getId(), userDetails.getId(), request.getFoodId());
@@ -138,12 +144,6 @@ public class CustomerFeedbackService {
                     
                     SurveyAnswer answer = SurveyAnswer.createAnswer(feedback, question, 
                             request.getAnswerText(), request.getNumericValue());
-                    
-                //     // 답변 유효성 검증
-                //     if (!answer.isValidAnswer()) {
-                //         throw new SurveyException(ErrorMessage.SURVEY_ANSWER_INVALID);
-                //     }
-                    
                     return answer;
                 })
                 .collect(Collectors.toList());
@@ -167,21 +167,38 @@ public class CustomerFeedbackService {
     }
 
     @Transactional(readOnly = true)
-    public List<CustomerFeedbackResponse> getUserFeedbacks(UserDetailsImpl userDetails) {
-        List<CustomerFeedback> feedbacks = feedbackRepository
-                .findByUserIdAndIsActiveTrueOrderByCreatedAtDesc(userDetails.getId());
-
-        return feedbacks.stream()
-                .map(this::mapToCustomerFeedbackResponse)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
     public Page<CustomerFeedbackResponse> getUserFeedbacks(UserDetailsImpl userDetails, Pageable pageable) {
+        // 페치 조인으로 연관 엔티티 함께 조회
         Page<CustomerFeedback> feedbacks = feedbackRepository
-                .findByUserIdAndIsActiveTrueOrderByCreatedAtDesc(userDetails.getId(), pageable);
+                .findByUserIdWithDetails(userDetails.getId(), pageable);
 
-        return feedbacks.map(this::mapToCustomerFeedbackResponse);
+        if (feedbacks.isEmpty()) {
+            return Page.empty();
+        }
+
+        // 피드백 ID 추출
+        List<Long> feedbackIds = feedbacks.stream()
+                .map(CustomerFeedback::getId)
+                .collect(Collectors.toList());
+
+        // 답변 배치 조회 (question 포함)
+        Map<Long, List<SurveyAnswer>> answersMap = answerRepository
+                .findAnswersByFeedbackIdsWithQuestion(feedbackIds)
+                .stream()
+                .collect(Collectors.groupingBy(sa -> sa.getFeedback().getId()));
+
+        // 사진 배치 조회
+        Map<Long, List<FeedbackPhoto>> photosMap = photoRepository
+                .findPhotosByFeedbackIds(feedbackIds)
+                .stream()
+                .collect(Collectors.groupingBy(fp -> fp.getFeedback().getId()));
+
+        // DTO 변환
+        return feedbacks.map(feedback -> mapToCustomerFeedbackResponseWithData(
+                feedback,
+                answersMap.getOrDefault(feedback.getId(), Collections.emptyList()),
+                photosMap.getOrDefault(feedback.getId(), Collections.emptyList())
+        ));
     }
 
     @Transactional(readOnly = true)
@@ -192,9 +209,41 @@ public class CustomerFeedbackService {
         }
 
         Page<CustomerFeedback> feedbacks = feedbackRepository
-                .findByStoreIdAndIsActiveTrueOrderByCreatedAtDesc(storeId, pageable);
+                .findByStoreIdWithDetails(storeId, pageable);
+        if (feedbacks.isEmpty()) {
+            return Page.empty();
+        }
 
-        return feedbacks.map(this::mapToOwnerFeedbackResponse);
+        // 피드백 ID 추출
+        List<Long> feedbackIds = feedbacks.stream()
+                .map(CustomerFeedback::getId)
+                .collect(Collectors.toList());
+
+        // 사장님 메시지만 효율적으로 조회
+        Map<Long, String> ownerMessagesMap = answerRepository
+                .findOwnerMessagesByFeedbackIds(feedbackIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],    // feedback_id
+                        row -> (String) row[1]    // answer_text
+                ));
+
+        // 사진 배치 조회
+        Map<Long, List<String>> photosMap = photoRepository
+                .findPhotosByFeedbackIds(feedbackIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        fp -> fp.getFeedback().getId(),
+                        Collectors.mapping(FeedbackPhoto::getImageUrl, Collectors.toList())
+                ));
+
+        // DTO 변환
+        return feedbacks.map(feedback -> {
+            OwnerFeedbackResponse response = OwnerFeedbackResponse.from(feedback);
+            response.setOwnerMessage(ownerMessagesMap.get(feedback.getId()));
+            response.setPhotoUrls(photosMap.getOrDefault(feedback.getId(), Collections.emptyList()));
+            return response;
+        });
     }
 
     @Transactional(readOnly = true)
@@ -202,15 +251,20 @@ public class CustomerFeedbackService {
         CustomerFeedback feedback = feedbackRepository.findById(feedbackId)
                 .orElseThrow(() -> new FeedbackException(ErrorMessage.FEEDBACK_NOT_FOUND));
 
-        return mapToCustomerFeedbackResponse(feedback);
+        // 답변은 question과 함께 조회
+        List<SurveyAnswer> answers = answerRepository.findByFeedbackIdWithQuestion(feedbackId);
+
+        // 사진 조회
+        List<FeedbackPhoto> photos = photoRepository.findByFeedbackIdOrderByCreatedAtAsc(feedbackId);
+
+        return mapToCustomerFeedbackResponseWithData(feedback, answers, photos);
     }
 
 
-    // 고객용 응답 매핑 (고객 정보 제외)
-    private CustomerFeedbackResponse mapToCustomerFeedbackResponse(CustomerFeedback feedback) {
-        List<SurveyAnswer> answers = answerRepository.findByFeedbackIdOrderByQuestionId(feedback.getId());
-        List<FeedbackPhoto> photos = photoRepository.findByFeedbackIdOrderByCreatedAtAsc(feedback.getId());
-
+    // 고객용 응답 매핑 (고객 정보 제외) - 데이터를 받아서 처리
+    private CustomerFeedbackResponse mapToCustomerFeedbackResponseWithData(CustomerFeedback feedback,
+                                                                          List<SurveyAnswer> answers,
+                                                                          List<FeedbackPhoto> photos) {
         return CustomerFeedbackResponse.builder()
                 .feedbackId(feedback.getId())
                 .foodName(feedback.getFoodItem().getFoodName())
@@ -224,6 +278,13 @@ public class CustomerFeedbackService {
                         .map(FeedbackPhoto::getImageUrl)
                         .collect(Collectors.toList()))
                 .build();
+    }
+
+    // 기존 메서드는 단일 조회용으로 유지
+    private CustomerFeedbackResponse mapToCustomerFeedbackResponse(CustomerFeedback feedback) {
+        List<SurveyAnswer> answers = answerRepository.findByFeedbackIdOrderByQuestionId(feedback.getId());
+        List<FeedbackPhoto> photos = photoRepository.findByFeedbackIdOrderByCreatedAtAsc(feedback.getId());
+        return mapToCustomerFeedbackResponseWithData(feedback, answers, photos);
     }
 
     // 사장님용 응답 매핑 (고객 정보 포함)
@@ -326,6 +387,7 @@ public class CustomerFeedbackService {
         }
     }
 
+    @Transactional(readOnly = true)
     public Page<OwnerFeedbackResponse> getFoodFeedbacks(Long foodId, UserDetailsImpl userDetails, Pageable pageable) {
         // 음식이 속한 매장 조회
         FoodItem foodItem = foodItemRepository.findById(foodId)
@@ -336,10 +398,44 @@ public class CustomerFeedbackService {
             throw new FeedbackException(ErrorMessage.STORE_ACCESS_DENIED);
         }
 
+        // 페치 조인으로 연관 엔티티 함께 조회
         Page<CustomerFeedback> feedbacks = feedbackRepository
-                .findByFoodItemIdAndIsActiveTrueOrderByCreatedAtDesc(foodId, pageable);
+                .findByFoodItemIdWithDetails(foodId, pageable);
 
-        return feedbacks.map(this::mapToOwnerFeedbackResponse);
+        if (feedbacks.isEmpty()) {
+            return Page.empty();
+        }
+
+        // 피드백 ID 추출
+        List<Long> feedbackIds = feedbacks.stream()
+                .map(CustomerFeedback::getId)
+                .collect(Collectors.toList());
+
+        // 사장님 메시지만 효율적으로 조회
+        Map<Long, String> ownerMessagesMap = answerRepository
+                .findOwnerMessagesByFeedbackIds(feedbackIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],    // feedback_id
+                        row -> (String) row[1]    // answer_text
+                ));
+
+        // 사진 배치 조회
+        Map<Long, List<String>> photosMap = photoRepository
+                .findPhotosByFeedbackIds(feedbackIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        fp -> fp.getFeedback().getId(),
+                        Collectors.mapping(FeedbackPhoto::getImageUrl, Collectors.toList())
+                ));
+
+        // DTO 변환
+        return feedbacks.map(feedback -> {
+            OwnerFeedbackResponse response = OwnerFeedbackResponse.from(feedback);
+            response.setOwnerMessage(ownerMessagesMap.get(feedback.getId()));
+            response.setPhotoUrls(photosMap.getOrDefault(feedback.getId(), Collections.emptyList()));
+            return response;
+        });
     }
 
 

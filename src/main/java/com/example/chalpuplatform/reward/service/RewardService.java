@@ -6,6 +6,7 @@ import com.example.chalpuplatform.common.exception.RewardException;
 import com.example.chalpuplatform.user.domain.User;
 import com.example.chalpuplatform.user.domain.UserProfile;
 import com.example.chalpuplatform.user.repository.UserRepository;
+import com.example.chalpuplatform.user.repository.UserProfileRepository;
 import com.example.chalpuplatform.reward.domain.Reward;
 import com.example.chalpuplatform.reward.domain.RewardRedemption;
 import com.example.chalpuplatform.reward.dto.RewardRedemptionRequest;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,6 +33,7 @@ public class RewardService {
     private final RewardRepository rewardRepository;
     private final RewardRedemptionRepository redemptionRepository;
     private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
 
     @Transactional(readOnly = true)
     public List<RewardResponse> getAvailableRewards() {
@@ -54,12 +57,13 @@ public class RewardService {
     }
 
     private boolean canUserAffordReward(User user, Reward reward) {
-        if (user.getUserProfile() == null) {
+        Optional<UserProfile> userProfile = userProfileRepository.findByUserId(user.getId());
+        if (!userProfile.isPresent()) {
             return false;
         }
-        Integer userRewardCount = user.getUserProfile().getRewardCount();
+        Integer userRewardCount = userProfile.get().getRewardCount();
         Integer requiredCount = reward.getRequiredCount();
-        
+
         return userRewardCount != null && requiredCount != null && userRewardCount >= requiredCount;
     }
 
@@ -67,9 +71,8 @@ public class RewardService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(ErrorMessage.USER_NOT_FOUND));
 
-        if (user.getUserProfile() == null) {
-            throw new RewardException(ErrorMessage.INSUFFICIENT_REWARD_COUNT);
-        }
+        UserProfile userProfile = userProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new RewardException(ErrorMessage.INSUFFICIENT_REWARD_COUNT));
 
         Reward reward = rewardRepository.findById(request.getRewardId())
                 .orElseThrow(() -> new RewardException(ErrorMessage.REWARD_NOT_FOUND));
@@ -84,19 +87,20 @@ public class RewardService {
 
         // 리워드 횟수 차감
         try {
-            user.getUserProfile().decrementRewardCount(reward.getRequiredCount());
+            userProfile.decrementRewardCount(reward.getRequiredCount());
+            userProfileRepository.save(userProfile);
         } catch (IllegalArgumentException e) {
             throw new RewardException(ErrorMessage.INSUFFICIENT_REWARD_COUNT);
         }
 
         RewardRedemption redemption = RewardRedemption.createRedemption(
-                user, reward, user.getUserProfile().getRewardCount());
+                user, reward, userProfile.getRewardCount());
 
         RewardRedemption savedRedemption = redemptionRepository.save(redemption);
 
-        log.info("리워드 교환 완료: userId={}, rewardId={}, required_count={}, remaining_count={}", 
-                userId, request.getRewardId(), reward.getRequiredCount(), 
-                user.getUserProfile().getRewardCount());
+        log.info("리워드 교환 완료: userId={}, rewardId={}, required_count={}, remaining_count={}",
+                userId, request.getRewardId(), reward.getRequiredCount(),
+                userProfile.getRewardCount());
 
         return RewardRedemptionResponse.from(savedRedemption);
     }
@@ -142,11 +146,12 @@ public class RewardService {
     public boolean isEligibleForReward(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(ErrorMessage.USER_NOT_FOUND));
-        
-        if (user.getUserProfile() == null) {
+
+        Optional<UserProfile> userProfile = userProfileRepository.findByUserId(userId);
+        if (!userProfile.isPresent()) {
             return false;
         }
-        
-        return user.getUserProfile().getRewardCount() != null && user.getUserProfile().getRewardCount() > 0;
+
+        return userProfile.get().getRewardCount() != null && userProfile.get().getRewardCount() > 0;
     }
 }

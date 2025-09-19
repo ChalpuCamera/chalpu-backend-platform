@@ -122,27 +122,51 @@ resource "aws_ssm_parameter" "kakao_client_secret" {
   }
 }
 
-# OAuth2 Redirect URLs
-resource "aws_ssm_parameter" "oauth2_redirect_success_url" {
-  name        = "/chalpu-platform/${var.environment}/oauth2-redirect-success-url"
-  description = "OAuth2 redirect success URL"
+# OAuth2 Redirect Configuration
+resource "aws_ssm_parameter" "oauth2_redirect_success_path" {
+  name        = "/chalpu-platform/${var.environment}/oauth2-redirect-success-path"
+  description = "OAuth2 redirect success path"
   type        = "String"
-  value       = var.oauth2_redirect_success_url
+  value       = var.oauth2_redirect_success_path
 
   tags = {
-    Name        = "chalpu-${var.environment}-oauth2-redirect-success-url"
+    Name        = "chalpu-${var.environment}-oauth2-redirect-success-path"
     Environment = var.environment
   }
 }
 
-resource "aws_ssm_parameter" "oauth2_redirect_failure_url" {
-  name        = "/chalpu-platform/${var.environment}/oauth2-redirect-failure-url"
-  description = "OAuth2 redirect failure URL"
+resource "aws_ssm_parameter" "oauth2_redirect_failure_path" {
+  name        = "/chalpu-platform/${var.environment}/oauth2-redirect-failure-path"
+  description = "OAuth2 redirect failure path"
   type        = "String"
-  value       = var.oauth2_redirect_failure_url
+  value       = var.oauth2_redirect_failure_path
 
   tags = {
-    Name        = "chalpu-${var.environment}-oauth2-redirect-failure-url"
+    Name        = "chalpu-${var.environment}-oauth2-redirect-failure-path"
+    Environment = var.environment
+  }
+}
+
+resource "aws_ssm_parameter" "oauth2_owner_domain" {
+  name        = "/chalpu-platform/${var.environment}/oauth2-owner-domain"
+  description = "OAuth2 owner domain"
+  type        = "String"
+  value       = var.oauth2_owner_domain
+
+  tags = {
+    Name        = "chalpu-${var.environment}-oauth2-owner-domain"
+    Environment = var.environment
+  }
+}
+
+resource "aws_ssm_parameter" "oauth2_customer_domain" {
+  name        = "/chalpu-platform/${var.environment}/oauth2-customer-domain"
+  description = "OAuth2 customer domain"
+  type        = "String"
+  value       = var.oauth2_customer_domain
+
+  tags = {
+    Name        = "chalpu-${var.environment}-oauth2-customer-domain"
     Environment = var.environment
   }
 }

@@ -70,8 +70,10 @@ server:
 # OAuth2 Redirect URLs
 oauth2:
   redirect:
-    success-url: ${oauth2-redirect-success-url}
-    failure-url: ${oauth2-redirect-failure-url}
+    success-path: ${oauth2-redirect-success-path}
+    failure-path: ${oauth2-redirect-failure-path}
+    owner-domain: ${oauth2-owner-domain}
+    customer-domain: ${oauth2-customer-domain}
 
 cloud:
   aws:

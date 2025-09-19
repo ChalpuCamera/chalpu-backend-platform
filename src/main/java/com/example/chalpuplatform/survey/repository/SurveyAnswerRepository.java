@@ -16,33 +16,6 @@ public interface SurveyAnswerRepository extends JpaRepository<SurveyAnswer, Long
 
     List<SurveyAnswer> findByFeedbackIdOrderByQuestionId(Long feedbackId);
 
-    Optional<SurveyAnswer> findByFeedbackIdAndQuestionId(Long feedbackId, Long questionId);
-
-    List<SurveyAnswer> findByQuestionId(Long questionId);
-    
-    void deleteByFeedbackId(Long feedbackId);
-    
-    // JAR 분석용 쿼리
-    @Query("""
-        SELECT sa.question.id, sa.question.jarAttribute, sa.numericValue, 
-               (SELECT osa.numericValue FROM SurveyAnswer osa 
-                WHERE osa.feedback.id = f.id 
-                AND osa.question.id = 10)
-        FROM SurveyAnswer sa
-        JOIN sa.feedback f
-        JOIN sa.question sq
-        WHERE sq.jarAttribute IS NOT NULL
-        AND f.store.id = :storeId
-        AND f.createdAt BETWEEN :startDate AND :endDate
-        AND EXISTS (SELECT 1 FROM SurveyAnswer osa2 
-                    WHERE osa2.feedback.id = f.id 
-                    AND osa2.question.id = 10 
-                    AND osa2.numericValue IS NOT NULL)
-        """)
-    List<Object[]> findJARDataByStore(@Param("storeId") Long storeId,
-                                      @Param("startDate") LocalDateTime startDate,
-                                      @Param("endDate") LocalDateTime endDate);
-    
     @Query("""
         SELECT sa.question.id, sa.question.jarAttribute, sa.numericValue,
                (SELECT osa.numericValue FROM SurveyAnswer osa 
@@ -93,4 +66,31 @@ public interface SurveyAnswerRepository extends JpaRepository<SurveyAnswer, Long
     List<Object[]> findNPSDataByFoodItem(@Param("foodItemId") Long foodItemId,
                                          @Param("startDate") LocalDateTime startDate,
                                          @Param("endDate") LocalDateTime endDate);
+
+    // 배치 조회 - question 포함
+    @Query("""
+        SELECT sa FROM SurveyAnswer sa
+        JOIN FETCH sa.question
+        WHERE sa.feedback.id IN :feedbackIds
+        ORDER BY sa.feedback.id, sa.question.id
+    """)
+    List<SurveyAnswer> findAnswersByFeedbackIdsWithQuestion(@Param("feedbackIds") List<Long> feedbackIds);
+
+    // 사장님께 한마디만 효율적으로 조회
+    @Query("""
+        SELECT sa.feedback.id, sa.answerText
+        FROM SurveyAnswer sa
+        WHERE sa.feedback.id IN :feedbackIds
+        AND sa.question.id = 9
+    """)
+    List<Object[]> findOwnerMessagesByFeedbackIds(@Param("feedbackIds") List<Long> feedbackIds);
+
+    // 고객용 - 전체 답변 조회 (question 포함)
+    @Query("""
+        SELECT sa FROM SurveyAnswer sa
+        JOIN FETCH sa.question
+        WHERE sa.feedback.id = :feedbackId
+        ORDER BY sa.question.id
+    """)
+    List<SurveyAnswer> findByFeedbackIdWithQuestion(@Param("feedbackId") Long feedbackId);
 }
