@@ -1,6 +1,8 @@
 package com.example.chalpuplatform.oauth.config;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
@@ -10,12 +12,17 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Component
 public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
 
     private final DefaultOAuth2AuthorizationRequestResolver defaultResolver;
-    private static final String CUSTOMER_BASE_URI = "/api/oauth2/authorization/customer";
-    private static final String OWNER_BASE_URI = "/api/oauth2/authorization/owner";
+
+    @Value("${oauth2.redirect.owner-domain:owner.chalpu.com}")
+    private String ownerDomain;
+
+    @Value("${oauth2.redirect.customer-domain:customer.chalpu.com}")
+    private String customerDomain;
 
     public CustomAuthorizationRequestResolver(ClientRegistrationRepository clientRegistrationRepository) {
         this.defaultResolver = new DefaultOAuth2AuthorizationRequestResolver(
@@ -24,59 +31,63 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
 
     @Override
     public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
-        String path = request.getRequestURI();
-        OAuth2AuthorizationRequest authorizationRequest = null;
-        
-        // customer 경로 처리
-        if (path.startsWith(CUSTOMER_BASE_URI)) {
-            String newPath = path.replace("/customer", "");
-            authorizationRequest = resolveRequest(request, newPath);
-            if (authorizationRequest != null) {
-                return customizeAuthorizationRequest(authorizationRequest, "customer");
-            }
+        OAuth2AuthorizationRequest authorizationRequest = defaultResolver.resolve(request);
+
+        if (authorizationRequest != null) {
+            String userType = determineUserTypeFromDomain(request);
+            return customizeAuthorizationRequest(authorizationRequest, userType);
         }
-        
-        // owner 경로 처리
-        if (path.startsWith(OWNER_BASE_URI)) {
-            String newPath = path.replace("/owner", "");
-            authorizationRequest = resolveRequest(request, newPath);
-            if (authorizationRequest != null) {
-                return customizeAuthorizationRequest(authorizationRequest, "owner");
-            }
-        }
-        
-        // 기본 경로 처리
-        if (defaultResolver != null) {
-            return defaultResolver.resolve(request);
-        }
-        
+
         return null;
     }
 
     @Override
     public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String clientRegistrationId) {
-        if (defaultResolver != null) {
-            OAuth2AuthorizationRequest authorizationRequest = defaultResolver.resolve(request, clientRegistrationId);
-            String path = request.getRequestURI();
-            
-            if (path.contains("/customer/")) {
-                return customizeAuthorizationRequest(authorizationRequest, "customer");
-            } else if (path.contains("/owner/")) {
-                return customizeAuthorizationRequest(authorizationRequest, "owner");
-            }
-            
-            return authorizationRequest;
+        OAuth2AuthorizationRequest authorizationRequest = defaultResolver.resolve(request, clientRegistrationId);
+
+        if (authorizationRequest != null) {
+            String userType = determineUserTypeFromDomain(request);
+            log.debug("OAuth2 인증 요청 - Host: {}, UserType: {}, Provider: {}",
+                    request.getServerName(), userType, clientRegistrationId);
+            return customizeAuthorizationRequest(authorizationRequest, userType);
         }
+
         return null;
     }
 
-    private OAuth2AuthorizationRequest resolveRequest(HttpServletRequest request, String path) {
-        if (defaultResolver != null) {
-            HttpServletRequest modifiedRequest = new HttpServletRequestWrapper(request, path);
-            return defaultResolver.resolve(modifiedRequest);
+    /**
+     * 도메인으로부터 사용자 타입 결정
+     */
+    private String determineUserTypeFromDomain(HttpServletRequest request) {
+        String origin = request.getHeader("Origin");
+        if (origin != null) {
+            log.debug("Origin 헤더 감지: {}", origin);
+            if (origin.contains(ownerDomain)) {
+                log.info("Owner 도메인에서 OAuth2 요청: {}", origin);
+                return "owner";
+            } else if (origin.contains(customerDomain)) {
+                log.info("Customer 도메인에서 OAuth2 요청: {}", origin);
+                return "customer";
+            }
         }
-        return null;
+
+        String referer = request.getHeader("Referer");
+        if (referer != null) {
+            log.debug("Referer 헤더 감지: {}", referer);
+            if (referer.contains(ownerDomain)) {
+                log.info("Owner 도메인에서 OAuth2 요청 (Referer): {}", referer);
+                return "owner";
+            } else if (referer.contains(customerDomain)) {
+                log.info("Customer 도메인에서 OAuth2 요청 (Referer): {}", referer);
+                return "customer";
+            }
+        }
+
+        // 3. 기본값은 customer
+        log.debug("도메인을 판단할 수 없음. 기본값 customer 사용 (Origin: {}, Referer: {})", origin, referer);
+        return "customer";
     }
+
 
     private OAuth2AuthorizationRequest customizeAuthorizationRequest(
             OAuth2AuthorizationRequest authorizationRequest, String userType) {
@@ -91,20 +102,5 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
         return OAuth2AuthorizationRequest.from(authorizationRequest)
                 .additionalParameters(additionalParameters)
                 .build();
-    }
-    
-    // HttpServletRequest Wrapper 클래스
-    private static class HttpServletRequestWrapper extends jakarta.servlet.http.HttpServletRequestWrapper {
-        private final String requestURI;
-        
-        public HttpServletRequestWrapper(HttpServletRequest request, String requestURI) {
-            super(request);
-            this.requestURI = requestURI;
-        }
-        
-        @Override
-        public String getRequestURI() {
-            return requestURI;
-        }
     }
 }

@@ -27,10 +27,14 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private final AuthCodeRepository authCodeRepository;
     private final UserLoginHistoryRepository userLoginHistoryRepository;
 
-    @Value("${oauth2.redirect.success-url}")
-    private String redirectSuccessUrl;
-    @Value("${oauth2.redirect.failure-url}")
-    private String redirectFailureUrl;
+    @Value("${oauth2.redirect.success-path:#{'/oauth2/success'}}")
+    private String successPath;
+    @Value("${oauth2.redirect.failure-path:#{'/oauth2/failure'}}")
+    private String failurePath;
+    @Value("${oauth2.redirect.owner-domain:#{''}}")
+    private String ownerDomain;
+    @Value("${oauth2.redirect.customer-domain:#{''}}")
+    private String customerDomain;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -65,13 +69,13 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 log.error("로그인 이력 저장 실패: userId={}, error={}", userDetails.getId(), e.getMessage());
             }
 
-            log.info("OAuth2 로그인 성공 및 인증 코드 생성: userId={}, email={}, code={}", 
-                    userDetails.getId(), userDetails.getEmail(), authCode);
+            log.info("OAuth2 로그인 성공 및 인증 코드 생성: userId={}, email={}, code={}, role={}",
+                    userDetails.getId(), userDetails.getEmail(), authCode, userRole);
 
-            // 인증 코드만 URL 파라미터로 전달
-            String targetUrl = UriComponentsBuilder.fromUriString(redirectSuccessUrl)
-                    .queryParam("code", authCode)
-                    .build().toUriString();
+            // 도메인 기반 리다이렉트 URL 결정
+            String targetUrl = buildRedirectUrl(request, userRole, authCode, true);
+
+            log.info("OAuth2 인증 성공 리다이렉트: {}", targetUrl);
 
             // 리다이렉트 수행
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
@@ -80,11 +84,74 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             log.error("OAuth2 인증 성공 처리 중 오류 발생: {}", e.getMessage(), e);
 
             // 오류 발생 시 실패 URL로 리다이렉트
-            String errorUrl = UriComponentsBuilder.fromUriString(redirectFailureUrl)
-                    .queryParam("error", URLEncoder.encode("로그인 처리 중 오류가 발생했습니다.", StandardCharsets.UTF_8))
-                    .build().toUriString();
+            String errorUrl = buildRedirectUrl(request, null,
+                    URLEncoder.encode("로그인 처리 중 오류가 발생했습니다.", StandardCharsets.UTF_8), false);
 
             getRedirectStrategy().sendRedirect(request, response, errorUrl);
         }
+    }
+
+    /**
+     * 도메인 기반으로 리다이렉트 URL 생성
+     */
+    private String buildRedirectUrl(HttpServletRequest request, String userRole, String param, boolean isSuccess) {
+        // Origin/Referer 헤더로 클라이언트 도메인 결정
+        String clientDomain = determineClientDomain(request);
+        String redirectDomain = determineRedirectDomain(clientDomain, userRole);
+        String path = isSuccess ? successPath : failurePath;
+        String paramName = isSuccess ? "code" : "error";
+
+        return UriComponentsBuilder.fromHttpUrl("https://" + redirectDomain)
+                .path(path)
+                .queryParam(paramName, param)
+                .build().toUriString();
+    }
+
+    /**
+     * Origin/Referer 헤더를 통해 클라이언트 도메인 결정
+     */
+    private String determineClientDomain(HttpServletRequest request) {
+        // 1. Origin 헤더 확인 (CORS 요청시)
+        String origin = request.getHeader("Origin");
+        if (origin != null) {
+            log.debug("Origin 헤더 감지: {}", origin);
+            if (origin.contains(ownerDomain)) {
+                log.info("Owner 도메인에서 OAuth2 성공 처리: {}", origin);
+                return "owner";
+            } else if (origin.contains(customerDomain)) {
+                log.info("Customer 도메인에서 OAuth2 성공 처리: {}", origin);
+                return "customer";
+            }
+        }
+
+        // 2. Referer 헤더 확인 (일반 요청시)
+        String referer = request.getHeader("Referer");
+        if (referer != null) {
+            log.debug("Referer 헤더 감지: {}", referer);
+            if (referer.contains(ownerDomain)) {
+                log.info("Owner 도메인에서 OAuth2 성공 처리 (Referer): {}", referer);
+                return "owner";
+            } else if (referer.contains(customerDomain)) {
+                log.info("Customer 도메인에서 OAuth2 성공 처리 (Referer): {}", referer);
+                return "customer";
+            }
+        }
+
+        // 3. 기본값은 customer
+        log.debug("도메인을 판단할 수 없음. 기본값 customer 사용 (Origin: {}, Referer: {})", origin, referer);
+        return "customer";
+    }
+
+    /**
+     * 리다이렉트할 도메인 결정
+     */
+    private String determineRedirectDomain(String clientDomain, String userRole) {
+        // 1. 클라이언트 도메인이 owner이거나 role이 OWNER인 경우
+        if ("owner".equals(clientDomain) || "ROLE_OWNER".equals(userRole)) {
+            return !ownerDomain.isEmpty() ? ownerDomain : "owner.chalpu.com";
+        }
+
+        // 2. 기본값은 customer 도메인
+        return !customerDomain.isEmpty() ? customerDomain : "customer.chalpu.com";
     }
 }
