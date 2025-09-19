@@ -53,9 +53,6 @@ public class User extends BaseTimeEntity {
     private Gender gender;
     
     private Integer age;
-    
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private UserProfile userProfile;
 
     public void updateOAuth2Info(String name, String picture) {
         this.name = name;

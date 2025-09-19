@@ -51,9 +51,8 @@ public class UserProfileService {
     private UserProfile createNewUserProfile(Long userId) {
         User user = userRepository.findByIdAndDeletedAtIsNull(userId)
                 .orElseThrow(() -> new UserException(ErrorMessage.USER_NOT_FOUND));
-        
+
         UserProfile newProfile = UserProfile.create(user);
-        user.setUserProfile(newProfile);
         return userProfileRepository.save(newProfile);
     }
 }
