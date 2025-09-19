@@ -65,7 +65,7 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(endpoint -> endpoint
-                                .baseUri("/api/oauth2/authorization")
+                                .baseUri("/api/oauth2/authorization") // 공통 엔드포인트
                                 .authorizationRequestResolver(customAuthorizationRequestResolver)
                         )
                         .redirectionEndpoint(endpoint -> endpoint.baseUri("/api/login/oauth2/code/*"))
@@ -89,8 +89,7 @@ public class SecurityConfig {
                 "http://127.0.0.1:3000",
                 "https://owner.chalpu.com",
                 "https://customer.chalpu.com",
-                "https://*.chalpu.com",  // 모든 chalpu.com 서브도메인 허용
-                "*"
+                "https://*.chalpu.com"  // 모든 chalpu.com 서브도메인 허용
         ));
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
