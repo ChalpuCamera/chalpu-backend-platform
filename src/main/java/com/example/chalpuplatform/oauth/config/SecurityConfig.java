@@ -87,6 +87,9 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:3000",
                 "http://127.0.0.1:3000",
+                "https://owner.chalpu.com",
+                "https://customer.chalpu.com",
+                "https://*.chalpu.com",  // 모든 chalpu.com 서브도메인 허용
                 "*"
         ));
 
