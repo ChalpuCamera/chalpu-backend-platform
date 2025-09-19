@@ -48,8 +48,10 @@ module "parameter_store" {
   aws_secret_key             = var.aws_secret_key
   kakao_client_id           = var.kakao_client_id
   kakao_client_secret       = var.kakao_client_secret
-  oauth2_redirect_success_url = var.oauth2_redirect_success_url
-  oauth2_redirect_failure_url = var.oauth2_redirect_failure_url
+  oauth2_redirect_success_path = var.oauth2_redirect_success_path
+  oauth2_redirect_failure_path = var.oauth2_redirect_failure_path
+  oauth2_owner_domain       = var.oauth2_owner_domain
+  oauth2_customer_domain    = var.oauth2_customer_domain
   s3_bucket                  = var.s3_bucket
   cloudfront_domain          = var.cloudfront_domain
   sentry_dsn                 = var.sentry_dsn
