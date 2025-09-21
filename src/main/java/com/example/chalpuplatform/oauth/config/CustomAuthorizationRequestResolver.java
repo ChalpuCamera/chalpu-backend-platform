@@ -9,8 +9,6 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @Component
@@ -18,10 +16,10 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
 
     private final DefaultOAuth2AuthorizationRequestResolver defaultResolver;
 
-    @Value("${oauth2.redirect.owner-domain:owner.chalpu.com}")
+    @Value("${oauth2.redirect.owner-domain}")
     private String ownerDomain;
 
-    @Value("${oauth2.redirect.customer-domain:customer.chalpu.com}")
+    @Value("${oauth2.redirect.customer-domain}")
     private String customerDomain;
 
     public CustomAuthorizationRequestResolver(ClientRegistrationRepository clientRegistrationRepository) {
@@ -91,16 +89,19 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
 
     private OAuth2AuthorizationRequest customizeAuthorizationRequest(
             OAuth2AuthorizationRequest authorizationRequest, String userType) {
-        
+
         if (authorizationRequest == null) {
             return null;
         }
-        
-        Map<String, Object> additionalParameters = new HashMap<>(authorizationRequest.getAdditionalParameters());
-        additionalParameters.put("user_type", userType);
-        
+
+        // state 파라미터에 user_type 정보 추가 (기존 state 보존)
+        String currentState = authorizationRequest.getState();
+        String newState = currentState + "_usertype:" + userType;
+
+        log.info("OAuth2 요청 커스터마이징 - userType: {}, state: {}", userType, newState);
+
         return OAuth2AuthorizationRequest.from(authorizationRequest)
-                .additionalParameters(additionalParameters)
+                .state(newState)
                 .build();
     }
 }

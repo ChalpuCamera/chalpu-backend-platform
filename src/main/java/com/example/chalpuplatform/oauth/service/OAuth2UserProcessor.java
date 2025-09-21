@@ -13,6 +13,9 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * OAuth2 사용자 처리 조정자
@@ -63,14 +66,25 @@ public class OAuth2UserProcessor {
      * OAuth2UserRequest에서 user_type 추출
      */
     private String extractUserType(OAuth2UserRequest userRequest) {
-        Object userType = userRequest.getAdditionalParameters().get("user_type");
-        
-        if (userType != null) {
-            log.debug("user_type 파라미터 발견: {}", userType);
-            return userType.toString();
+        try {
+            // 현재 HTTP 요청에서 state 파라미터 추출
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attributes != null) {
+                HttpServletRequest request = attributes.getRequest();
+                String state = request.getParameter("state");
+
+                if (state != null && state.contains("_usertype:")) {
+                    // state에서 user_type 추출
+                    String userType = state.substring(state.indexOf("_usertype:") + 10);
+                    log.info("State에서 user_type 추출: state={}, userType={}", state, userType);
+                    return userType;
+                }
+            }
+        } catch (Exception e) {
+            log.error("State에서 user_type 추출 실패: {}", e.getMessage());
         }
-        
-        log.debug("user_type 파라미터 없음, 기본값 customer 사용");
+
+        log.info("user_type을 찾을 수 없음, 기본값 customer 사용");
         return "customer";
     }
 }
