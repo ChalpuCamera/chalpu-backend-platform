@@ -95,9 +95,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
      * 도메인 기반으로 리다이렉트 URL 생성
      */
     private String buildRedirectUrl(HttpServletRequest request, String userRole, String param, boolean isSuccess) {
-        // Origin/Referer 헤더로 클라이언트 도메인 결정
-        String clientDomain = determineClientDomain(request);
-        String redirectDomain = determineRedirectDomain(clientDomain, userRole);
+        String redirectDomain = determineRedirectDomain(userRole);
         String path = isSuccess ? successPath : failurePath;
         String paramName = isSuccess ? "code" : "error";
 
@@ -108,52 +106,17 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     }
 
     /**
-     * Origin/Referer 헤더를 통해 클라이언트 도메인 결정
-     */
-    private String determineClientDomain(HttpServletRequest request) {
-        log.info("도메인 판별 시작 - ownerDomain: {}, customerDomain: {}", ownerDomain, customerDomain);
-
-        // 1. Origin 헤더 확인 (CORS 요청시)
-        String origin = request.getHeader("Origin");
-        if (origin != null && !origin.isEmpty()) {
-            log.info("Origin 헤더 감지: {}", origin);
-            if (origin.contains("owner")) {
-                log.info("Owner 도메인에서 OAuth2 성공 처리 (Origin contains 'owner'): {}", origin);
-                return "owner";
-            } else if (origin.contains("customer")) {
-                log.info("Customer 도메인에서 OAuth2 성공 처리 (Origin contains 'customer'): {}", origin);
-                return "customer";
-            }
-        }
-
-        // 2. Referer 헤더 확인 (일반 요청시)
-        String referer = request.getHeader("Referer");
-        if (referer != null && !referer.isEmpty()) {
-            log.info("Referer 헤더 감지: {}", referer);
-            if (referer.contains("owner")) {
-                log.info("Owner 도메인에서 OAuth2 성공 처리 (Referer contains 'owner'): {}", referer);
-                return "owner";
-            } else if (referer.contains("customer")) {
-                log.info("Customer 도메인에서 OAuth2 성공 처리 (Referer contains 'customer'): {}", referer);
-                return "customer";
-            }
-        }
-
-        // 3. 기본값은 customer
-        log.info("도메인을 판단할 수 없음. 기본값 customer 사용 (Origin: {}, Referer: {})", origin, referer);
-        return "customer";
-    }
-
-    /**
      * 리다이렉트할 도메인 결정
      */
-    private String determineRedirectDomain(String clientDomain, String userRole) {
-        // 1. 클라이언트 도메인이 owner이거나 role이 OWNER인 경우
-        if ("owner".equals(clientDomain) || "ROLE_OWNER".equals(userRole)) {
+    private String determineRedirectDomain(String userRole) {
+        // role이 OWNER인 경우 owner 도메인으로
+        if ("ROLE_OWNER".equals(userRole)) {
+            log.info("Owner 역할 감지 - owner 도메인으로 리다이렉트");
             return !ownerDomain.isEmpty() ? ownerDomain : "owner.chalpu.com";
         }
 
-        // 2. 기본값은 customer 도메인
+        // 기본값은 customer 도메인
+        log.info("Customer 역할 감지 - customer 도메인으로 리다이렉트");
         return !customerDomain.isEmpty() ? customerDomain : "customer.chalpu.com";
     }
 }
