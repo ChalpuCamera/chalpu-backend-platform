@@ -31,9 +31,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private String successPath;
     @Value("${oauth2.redirect.failure-path:#{'/oauth2/failure'}}")
     private String failurePath;
-    @Value("${oauth2.redirect.owner-domain:#{''}}")
+    @Value("${oauth2.redirect.owner-domain:owner.chalpu.com}")
     private String ownerDomain;
-    @Value("${oauth2.redirect.customer-domain:#{''}}")
+    @Value("${oauth2.redirect.customer-domain:customer.chalpu.com}")
     private String customerDomain;
 
     @Override
@@ -111,34 +111,36 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
      * Origin/Referer 헤더를 통해 클라이언트 도메인 결정
      */
     private String determineClientDomain(HttpServletRequest request) {
+        log.info("도메인 판별 시작 - ownerDomain: {}, customerDomain: {}", ownerDomain, customerDomain);
+
         // 1. Origin 헤더 확인 (CORS 요청시)
         String origin = request.getHeader("Origin");
-        if (origin != null) {
-            log.debug("Origin 헤더 감지: {}", origin);
-            if (origin.contains(ownerDomain)) {
-                log.info("Owner 도메인에서 OAuth2 성공 처리: {}", origin);
+        if (origin != null && !origin.isEmpty()) {
+            log.info("Origin 헤더 감지: {}", origin);
+            if (origin.contains("owner")) {
+                log.info("Owner 도메인에서 OAuth2 성공 처리 (Origin contains 'owner'): {}", origin);
                 return "owner";
-            } else if (origin.contains(customerDomain)) {
-                log.info("Customer 도메인에서 OAuth2 성공 처리: {}", origin);
+            } else if (origin.contains("customer")) {
+                log.info("Customer 도메인에서 OAuth2 성공 처리 (Origin contains 'customer'): {}", origin);
                 return "customer";
             }
         }
 
         // 2. Referer 헤더 확인 (일반 요청시)
         String referer = request.getHeader("Referer");
-        if (referer != null) {
-            log.debug("Referer 헤더 감지: {}", referer);
-            if (referer.contains(ownerDomain)) {
-                log.info("Owner 도메인에서 OAuth2 성공 처리 (Referer): {}", referer);
+        if (referer != null && !referer.isEmpty()) {
+            log.info("Referer 헤더 감지: {}", referer);
+            if (referer.contains("owner")) {
+                log.info("Owner 도메인에서 OAuth2 성공 처리 (Referer contains 'owner'): {}", referer);
                 return "owner";
-            } else if (referer.contains(customerDomain)) {
-                log.info("Customer 도메인에서 OAuth2 성공 처리 (Referer): {}", referer);
+            } else if (referer.contains("customer")) {
+                log.info("Customer 도메인에서 OAuth2 성공 처리 (Referer contains 'customer'): {}", referer);
                 return "customer";
             }
         }
 
         // 3. 기본값은 customer
-        log.debug("도메인을 판단할 수 없음. 기본값 customer 사용 (Origin: {}, Referer: {})", origin, referer);
+        log.info("도메인을 판단할 수 없음. 기본값 customer 사용 (Origin: {}, Referer: {})", origin, referer);
         return "customer";
     }
 
