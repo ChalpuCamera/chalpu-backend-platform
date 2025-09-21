@@ -15,7 +15,7 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ㅡㅡ리고 파비콘 에어 UserTypeStrategyFactory {
+public class UserTypeStrategyFactory {
     
     private final List<UserTypeStrategy> strategies;
     private final Map<String, UserTypeStrategy> strategyMap = new HashMap<>();
