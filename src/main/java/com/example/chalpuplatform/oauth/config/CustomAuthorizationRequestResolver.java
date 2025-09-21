@@ -22,8 +22,31 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
 
     @Override
     public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
-        OAuth2AuthorizationRequest authorizationRequest = defaultResolver.resolve(request);
+        // URL 경로에서 provider와 userType 추출
+        String path = request.getRequestURI();
 
+        // /api/oauth2/authorization/kakao/customer 형식 처리
+        if (path != null && path.contains("/oauth2/authorization/")) {
+            String[] parts = path.split("/");
+            if (parts.length >= 5) {
+                // provider 추출 (예: kakao, naver, google, apple)
+                String provider = parts[parts.length - 2];
+                String userType = parts[parts.length - 1];
+
+                // customer나 owner인 경우
+                if ("customer".equals(userType) || "owner".equals(userType)) {
+                    // 기본 경로로 OAuth2AuthorizationRequest 생성
+                    OAuth2AuthorizationRequest authorizationRequest = defaultResolver.resolve(request, provider);
+                    if (authorizationRequest != null) {
+                        log.info("OAuth2 요청 처리 - Provider: {}, UserType: {}", provider, userType);
+                        return customizeAuthorizationRequest(authorizationRequest, userType);
+                    }
+                }
+            }
+        }
+
+        // 기본 처리 (이전 버전 호환성)
+        OAuth2AuthorizationRequest authorizationRequest = defaultResolver.resolve(request);
         if (authorizationRequest != null) {
             String userType = determineUserTypeFromDomain(request);
             return customizeAuthorizationRequest(authorizationRequest, userType);
@@ -34,12 +57,30 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
 
     @Override
     public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String clientRegistrationId) {
-        OAuth2AuthorizationRequest authorizationRequest = defaultResolver.resolve(request, clientRegistrationId);
+        // URL 경로에서 userType 확인
+        String path = request.getRequestURI();
+        String userType = "customer"; // 기본값
 
+        if (path != null) {
+            if (path.endsWith("/owner")) {
+                userType = "owner";
+                // clientRegistrationId에서 /owner 제거
+                if (clientRegistrationId != null && clientRegistrationId.endsWith("/owner")) {
+                    clientRegistrationId = clientRegistrationId.replace("/owner", "");
+                }
+            } else if (path.endsWith("/customer")) {
+                userType = "customer";
+                // clientRegistrationId에서 /customer 제거
+                if (clientRegistrationId != null && clientRegistrationId.endsWith("/customer")) {
+                    clientRegistrationId = clientRegistrationId.replace("/customer", "");
+                }
+            }
+        }
+
+        OAuth2AuthorizationRequest authorizationRequest = defaultResolver.resolve(request, clientRegistrationId);
         if (authorizationRequest != null) {
-            String userType = determineUserTypeFromDomain(request);
-            log.debug("OAuth2 인증 요청 - Host: {}, UserType: {}, Provider: {}",
-                    request.getServerName(), userType, clientRegistrationId);
+            log.info("OAuth2 인증 요청 - Provider: {}, UserType: {}, Path: {}",
+                    clientRegistrationId, userType, path);
             return customizeAuthorizationRequest(authorizationRequest, userType);
         }
 
