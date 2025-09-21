@@ -64,6 +64,7 @@ public class OAuth2UserProcessor {
     
     /**
      * OAuth2UserRequest에서 user_type 추출
+     * 우선순위: 1) URL 경로, 2) state 파라미터, 3) 기본값
      */
     private String extractUserType(OAuth2UserRequest userRequest) {
         try {
@@ -71,8 +72,21 @@ public class OAuth2UserProcessor {
             ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
             if (attributes != null) {
                 HttpServletRequest request = attributes.getRequest();
-                String state = request.getParameter("state");
 
+                // 1. URL 경로에서 userType 확인 (우선순위 최상)
+                String requestUri = request.getRequestURI();
+                if (requestUri != null) {
+                    if (requestUri.contains("/owner")) {
+                        log.info("URL 경로에서 owner 타입 감지: {}", requestUri);
+                        return "owner";
+                    } else if (requestUri.contains("/customer")) {
+                        log.info("URL 경로에서 customer 타입 감지: {}", requestUri);
+                        return "customer";
+                    }
+                }
+
+                // 2. state 파라미터에서 확인 (백업용)
+                String state = request.getParameter("state");
                 if (state != null && state.contains("_usertype:")) {
                     // state에서 user_type 추출
                     String userType = state.substring(state.indexOf("_usertype:") + 10);
@@ -81,9 +95,10 @@ public class OAuth2UserProcessor {
                 }
             }
         } catch (Exception e) {
-            log.error("State에서 user_type 추출 실패: {}", e.getMessage());
+            log.error("user_type 추출 실패: {}", e.getMessage());
         }
 
+        // 3. 기본값
         log.info("user_type을 찾을 수 없음, 기본값 customer 사용");
         return "customer";
     }

@@ -66,7 +66,7 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(endpoint -> endpoint
-                                .baseUri("/api/oauth2/authorization") // 공통 엔드포인트
+                                .baseUri("/api/oauth2/authorization/*") // 와일드카드 패턴으로 customer/owner 지원
                                 .authorizationRequestResolver(customAuthorizationRequestResolver)
                         )
                         .redirectionEndpoint(endpoint -> endpoint.baseUri("/api/login/oauth2/code/*"))

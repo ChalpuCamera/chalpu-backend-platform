@@ -2,7 +2,6 @@ package com.example.chalpuplatform.oauth.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
@@ -15,12 +14,6 @@ import org.springframework.stereotype.Component;
 public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
 
     private final DefaultOAuth2AuthorizationRequestResolver defaultResolver;
-
-    @Value("${oauth2.redirect.owner-domain}")
-    private String ownerDomain;
-
-    @Value("${oauth2.redirect.customer-domain}")
-    private String customerDomain;
 
     public CustomAuthorizationRequestResolver(ClientRegistrationRepository clientRegistrationRepository) {
         this.defaultResolver = new DefaultOAuth2AuthorizationRequestResolver(
@@ -54,35 +47,26 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
     }
 
     /**
-     * 도메인으로부터 사용자 타입 결정
+     * URL 경로에서 사용자 타입 결정
+     * /api/oauth2/authorization/kakao/customer -> customer
+     * /api/oauth2/authorization/kakao/owner -> owner
      */
     private String determineUserTypeFromDomain(HttpServletRequest request) {
-        String origin = request.getHeader("Origin");
-        if (origin != null) {
-            log.debug("Origin 헤더 감지: {}", origin);
-            if (origin.contains(ownerDomain)) {
-                log.info("Owner 도메인에서 OAuth2 요청: {}", origin);
+        String requestUri = request.getRequestURI();
+
+        // URL 경로에서 userType 추출
+        if (requestUri != null) {
+            if (requestUri.contains("/owner")) {
+                log.info("Owner 타입 감지 from URL: {}", requestUri);
                 return "owner";
-            } else if (origin.contains(customerDomain)) {
-                log.info("Customer 도메인에서 OAuth2 요청: {}", origin);
+            } else if (requestUri.contains("/customer")) {
+                log.info("Customer 타입 감지 from URL: {}", requestUri);
                 return "customer";
             }
         }
 
-        String referer = request.getHeader("Referer");
-        if (referer != null) {
-            log.debug("Referer 헤더 감지: {}", referer);
-            if (referer.contains(ownerDomain)) {
-                log.info("Owner 도메인에서 OAuth2 요청 (Referer): {}", referer);
-                return "owner";
-            } else if (referer.contains(customerDomain)) {
-                log.info("Customer 도메인에서 OAuth2 요청 (Referer): {}", referer);
-                return "customer";
-            }
-        }
-
-        // 3. 기본값은 customer
-        log.debug("도메인을 판단할 수 없음. 기본값 customer 사용 (Origin: {}, Referer: {})", origin, referer);
+        // 기본값은 customer
+        log.info("URL에서 사용자 타입을 판단할 수 없음. 기본값 customer 사용: {}", requestUri);
         return "customer";
     }
 
