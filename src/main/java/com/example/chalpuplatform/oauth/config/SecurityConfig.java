@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/login", "/login.html", "/error", "/favicon.ico","/util/token","/actuator/**").permitAll()
                         .requestMatchers("/index.html","/test.html","/landing/**").permitAll()
                         .requestMatchers("/api/auth/refresh", "/api/auth/logout", "/api/auth/me").permitAll()
+                        .requestMatchers("/api/auth/token", "/api/auth/token/exchange").permitAll()
                         .requestMatchers("/api/test/**").permitAll() // 테스트용 엔드포인트 전체 허용
                         .requestMatchers("/admin/cleanup-tokens").permitAll() // 임시 관리자 엔드포인트
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
