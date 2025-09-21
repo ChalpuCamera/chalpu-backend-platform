@@ -45,43 +45,6 @@ public class UserStoreRoleService {
     }
 
     /**
-     * 사용자가 속한 매장 목록 조회 (전체)
-     */
-    public List<StoreResponse> getMyStores(Long userId) {
-        List<UserStoreRole> userStoreRoles = userStoreRoleRepository.findByUserIdAndIsActiveTrueWithStoreOnly(userId);
-        log.info("userStoreRoles: {}", userStoreRoles);
-        return userStoreRoles.stream()
-                .map(usr -> StoreResponse.from(usr.getStore()))
-                .toList();
-    }
-
-    /**
-     * 사용자가 소유한 매장 목록 조회
-     */
-    public List<StoreResponse> getOwnedStores(Long userId) {
-        List<UserStoreRole> userStoreRoles = userStoreRoleRepository.findByUserIdAndIsActiveTrueWithStoreOnly(userId);
-        log.info("userStoreRoles: {}", userStoreRoles);
-        return userStoreRoles.stream()
-                .filter(UserStoreRole::getIsActive)
-                .filter(UserStoreRole::isOwner)
-                .map(role -> StoreResponse.from(role.getStore()))
-                .toList();
-    }
-
-    /**
-     * 사용자가 관리할 수 있는 매장 목록 조회
-     */
-    public List<StoreResponse> getManageableStores(Long userId) {
-        List<UserStoreRole> userStoreRoles = userStoreRoleRepository.findByUserIdAndIsActiveTrueWithStoreOnly(userId);
-        log.info("userStoreRoles: {}", userStoreRoles);
-        return userStoreRoles.stream()
-                .filter(UserStoreRole::getIsActive)
-                .filter(UserStoreRole::canManageStore)
-                .map(role -> StoreResponse.from(role.getStore()))
-                .toList();
-    }
-
-    /**
      * 특정 매장의 멤버 목록 조회
      */
     public List<MemberResponse> getStoreMembers(Long storeId, Long requestUserId) {
@@ -174,96 +137,6 @@ public class UserStoreRoleService {
         }
     }
 
-    /**
-     * 멤버 역할 변경
-     */
-    @Transactional
-    public MemberResponse changeRole(Long storeId, Long targetUserId, StoreRoleType newRoleType, Long requestUserId) {
-        try {
-            Store store = storeRepository.findById(storeId)
-                    .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
-
-            // 요청자와 대상자의 역할 조회
-            UserStoreRole requestUserRole = userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(requestUserId, storeId)
-                    .orElseThrow(() -> new StoreException(ErrorMessage.STORE_ACCESS_DENIED));
-
-            UserStoreRole targetRole = userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(targetUserId, storeId)
-                    .orElseThrow(() -> new StoreException(ErrorMessage.STORE_MEMBER_NOT_FOUND));
-
-            // 권한 검증
-            validateRoleChange(requestUserRole, targetRole, newRoleType);
-
-            // 역할 변경
-            targetRole.changeRole(newRoleType);
-            userStoreRoleRepository.save(targetRole);
-            
-            log.info("event=member_role_changed, store_id={}, target_user_id={}, new_role={}, request_user_id={}",
-                    storeId, targetUserId, newRoleType, requestUserId);
-
-            return MemberResponse.from(targetRole);
-        } catch (Exception e) {
-            log.error("event=member_role_change_failed, store_id={}, target_user_id={}, request_user_id={}, error_message={}",
-                    storeId, targetUserId, requestUserId, e.getMessage(), e);
-            throw e;
-        }
-    }
-
-    /**
-     * 멤버 제거 (비활성화)
-     */
-    @Transactional
-    public void removeMember(Long storeId, Long targetUserId, Long requestUserId) {
-        try {
-            // 요청자의 권한 확인
-            if (!canUserManageStore(requestUserId, storeId)) {
-                throw new StoreException(ErrorMessage.STORE_ACCESS_DENIED);
-            }
-
-            // 대상자 역할 조회
-            UserStoreRole targetRole = userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(targetUserId, storeId)
-                    .orElseThrow(() -> new StoreException(ErrorMessage.STORE_MEMBER_NOT_FOUND));
-
-            // 본인은 제거할 수 없음
-            if (targetUserId.equals(requestUserId)) {
-                throw new StoreException(ErrorMessage.INVALID_REQUEST);
-            }
-
-            targetRole.softDelete();
-            userStoreRoleRepository.save(targetRole);
-            
-            log.info("event=member_removed, store_id={}, target_user_id={}, request_user_id={}",
-                    storeId, targetUserId, requestUserId);
-        } catch (Exception e) {
-            log.error("event=member_removal_failed, store_id={}, target_user_id={}, request_user_id={}, error_message={}",
-                    storeId, targetUserId, requestUserId, e.getMessage(), e);
-            throw e;
-        }
-    }
-
-    /**
-     * 매장 탈퇴 (본인)
-     */
-    @Transactional
-    public void leaveStore(Long storeId, Long userId) {
-        try {
-            UserStoreRole userRole = userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(userId, storeId)
-                    .orElseThrow(() -> new StoreException(ErrorMessage.STORE_MEMBER_NOT_FOUND));
-
-            // 소유자는 탈퇴할 수 없음
-            if (userRole.isOwner()) {
-                throw new StoreException(ErrorMessage.STORE_OWNER_CANNOT_LEAVE);
-            }
-
-            userRole.softDelete();
-            userStoreRoleRepository.save(userRole);
-            
-            log.info("event=member_left_store, store_id={}, user_id={}", storeId, userId);
-        } catch (Exception e) {
-            log.error("event=store_leave_failed, store_id={}, user_id={}, error_message={}",
-                    storeId, userId, e.getMessage(), e);
-            throw e;
-        }
-    }
 
     /**
      * 특정 매장에서 사용자의 권한 확인
@@ -300,38 +173,12 @@ public class UserStoreRoleService {
     }
 
     /**
-     * 사용자가 특정 매장을 관리할 수 있는지 확인
-     */
-    private boolean canManageStore(List<UserStoreRole> userRoles, Store store) {
-        return getUserRoleInStore(userRoles, store)
-                .map(UserStoreRole::canManageStore)
-                .orElse(false);
-    }
-
-    /**
      * 사용자가 특정 매장에 멤버를 초대할 수 있는지 확인
      */
     private boolean canInviteMembers(List<UserStoreRole> userRoles, Store store) {
         return getUserRoleInStore(userRoles, store)
                 .map(UserStoreRole::canInviteMembers)
                 .orElse(false);
-    }
-
-    /**
-     * 역할 변경 시 권한 검증
-     */
-    private void validateRoleChange(UserStoreRole currentUserRole, UserStoreRole targetRole, StoreRoleType newRoleType) {
-        if (!currentUserRole.canInviteMembers()) {
-            throw new StoreException(ErrorMessage.STORE_ACCESS_DENIED);
-        }
-
-        if (!currentUserRole.hasHigherAuthorityThan(targetRole)) {
-            throw new StoreException(ErrorMessage.STORE_ACCESS_DENIED);
-        }
-
-        if (currentUserRole.getRoleType().getAuthorityLevel() <= newRoleType.getAuthorityLevel()) {
-            throw new StoreException(ErrorMessage.STORE_ACCESS_DENIED);
-        }
     }
 
     /**
