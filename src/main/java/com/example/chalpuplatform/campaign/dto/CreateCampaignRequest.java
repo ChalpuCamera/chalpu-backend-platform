@@ -35,8 +35,8 @@ public class CreateCampaignRequest {
 
     @NotNull
     @Min(1)
-    @Max(10000)
-    @Schema(description = "목표 피드백 수", example = "100", required = true)
+    @Max(100)
+    @Schema(description = "목표 피드백 수", example = "50", required = true)
     private Integer targetFeedbackCount;
 
     @NotNull

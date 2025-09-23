@@ -47,9 +47,14 @@ public class CampaignCommandService {
         UserStoreRole usr = userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrueWithoutJoin(userId, request.getStoreId())
             .orElseThrow(() -> new CampaignException(ErrorMessage.STORE_ACCESS_DENIED));
 
+        // 캠페인 관리 권한 확인
+        if (!usr.canManageStore()) {
+            throw new CampaignException(ErrorMessage.STORE_ACCESS_DENIED);
+        }
+
         // 음식 확인
         FoodItem foodItem = foodItemRepository.findById(request.getFoodItemId())
-            .orElseThrow(() -> new CampaignException(ErrorMessage.FOOD_ITEM_NOT_FOUND));
+            .orElseThrow(() -> new CampaignException(ErrorMessage.FOODITEM_NOT_FOUND));
 
         // 음식이 해당 매장의 것인지 확인
         if (!foodItem.getStore().getId().equals(store.getId())) {
@@ -90,6 +95,11 @@ public class CampaignCommandService {
         UserStoreRole usr = userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrueWithoutJoin(userId, request.getStoreId())
                 .orElseThrow(() -> new CampaignException(ErrorMessage.STORE_ACCESS_DENIED));
 
+        // 캠페인 관리 권한 확인
+        if (!usr.canManageStore()) {
+            throw new CampaignException(ErrorMessage.STORE_ACCESS_DENIED);
+        }
+
         // 도메인 검증
         campaignDomainService.validateTargetFeedbackCount(request.getTargetFeedbackCount());
         campaignDomainService.validateCampaignUpdate(campaign, request.getStartDate(), request.getEndDate());
@@ -120,6 +130,11 @@ public class CampaignCommandService {
         UserStoreRole usr = userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrueWithoutJoin(userId, campaign.getStore().getId())
             .orElseThrow(() -> new CampaignException(ErrorMessage.STORE_ACCESS_DENIED));
 
+        // 캠페인 관리 권한 확인
+        if (!usr.canManageStore()) {
+            throw new CampaignException(ErrorMessage.STORE_ACCESS_DENIED);
+        }
+
         // 활성 캠페인은 삭제 불가
         if (campaign.getStatus() == Campaign.CampaignStatus.ACTIVE) {
             throw new IllegalStateException("활성 상태의 캠페인은 삭제할 수 없습니다");
@@ -144,6 +159,11 @@ public class CampaignCommandService {
         // UserStoreRole로 권한 확인
         UserStoreRole usr = userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrueWithoutJoin(userId, campaign.getStore().getId())
             .orElseThrow(() -> new CampaignException(ErrorMessage.STORE_ACCESS_DENIED));
+
+        // 캠페인 관리 권한 확인
+        if (!usr.canManageStore()) {
+            throw new CampaignException(ErrorMessage.STORE_ACCESS_DENIED);
+        }
 
         // 상태 변경
         switch (newStatus) {

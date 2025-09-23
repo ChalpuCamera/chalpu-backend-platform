@@ -35,6 +35,7 @@ public class CampaignQueryService {
     private final StoreRepository storeRepository;
     private final CampaignDomainService campaignDomainService;
 
+    @Transactional
     public CampaignDetailResponse getCampaignById(Long campaignId) {
         Campaign campaign = campaignRepository.findById(campaignId)
             .orElseThrow(() -> new CampaignException(ErrorMessage.CAMPAIGN_NOT_FOUND));
