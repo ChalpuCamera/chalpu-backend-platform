@@ -1,11 +1,11 @@
 package com.example.chalpuplatform.campaign.controller;
 
-import com.example.chalpuplatform.campaign.domain.Campaign;
 import com.example.chalpuplatform.campaign.dto.*;
 import com.example.chalpuplatform.campaign.service.CampaignCommandService;
 import com.example.chalpuplatform.campaign.service.CampaignQueryService;
 import com.example.chalpuplatform.common.response.PageResponse;
 import com.example.chalpuplatform.common.response.ApiResponse;
+import com.example.chalpuplatform.oauth.jwt.UserDetailsImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -34,9 +34,9 @@ public class CampaignController {
     @Operation(summary = "캠페인 생성", description = "새로운 캠페인을 생성합니다")
     public ResponseEntity<ApiResponse<Map<String, Long>>> createCampaign(
         @Valid @RequestBody CreateCampaignRequest request,
-        @AuthenticationPrincipal Long userId
+        @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        Long campaignId = campaignCommandService.createCampaign(request, userId);
+        Long campaignId = campaignCommandService.createCampaign(request, userDetails.getId());
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.success(Map.of("campaignId", campaignId)));
     }
@@ -46,9 +46,9 @@ public class CampaignController {
     public ResponseEntity<ApiResponse<Void>> updateCampaign(
         @PathVariable("id") Long campaignId,
         @Valid @RequestBody UpdateCampaignRequest request,
-        @AuthenticationPrincipal Long userId
+        @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        campaignCommandService.updateCampaign(campaignId, request, userId);
+        campaignCommandService.updateCampaign(campaignId, request, userDetails.getId());
         return ResponseEntity.ok(ApiResponse.success());
     }
 
@@ -56,9 +56,9 @@ public class CampaignController {
     @Operation(summary = "캠페인 삭제", description = "캠페인을 소프트 삭제합니다")
     public ResponseEntity<ApiResponse<Void>> deleteCampaign(
         @PathVariable("id") Long campaignId,
-        @AuthenticationPrincipal Long userId
+        @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        campaignCommandService.deleteCampaign(campaignId, userId);
+        campaignCommandService.deleteCampaign(campaignId, userDetails.getId());
         return ResponseEntity.ok(ApiResponse.success());
     }
 
@@ -66,10 +66,10 @@ public class CampaignController {
     @Operation(summary = "캠페인 상태 변경", description = "캠페인의 상태를 변경합니다")
     public ResponseEntity<ApiResponse<Void>> changeCampaignStatus(
         @PathVariable("id") Long campaignId,
-        @RequestParam Campaign.CampaignStatus status,
-        @AuthenticationPrincipal Long userId
+        @Valid @RequestBody ChangeCampaignStatusRequest request,
+        @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        campaignCommandService.changeCampaignStatus(campaignId, status, userId);
+        campaignCommandService.changeCampaignStatus(campaignId, request.getStatus(), userDetails.getId());
         return ResponseEntity.ok(ApiResponse.success());
     }
 
