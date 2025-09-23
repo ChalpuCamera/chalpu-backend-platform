@@ -90,7 +90,8 @@ public class SecurityConfig {
                 "http://127.0.0.1:3000",
                 "https://owner.chalpu.com",
                 "https://customer.chalpu.com",
-                "https://*.chalpu.com"  // 모든 chalpu.com 서브도메인 허용
+                "https://*.chalpu.com",  // 모든 chalpu.com 서브도메인 허용
+                "https://*.chefriend.kr"
         ));
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));

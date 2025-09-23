@@ -96,6 +96,20 @@ public enum ErrorMessage {
     PHOTO_FEATURE_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "대표 사진 설정에 실패했습니다."),
     PHOTO_BACKGROUND_REMOVAL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "배경 제거 처리에 실패했습니다."),
 
+    // 캠페인 관련 에러
+    CAMPAIGN_NOT_FOUND(NOT_FOUND, "캠페인을 찾을 수 없습니다."),
+    CAMPAIGN_ACCESS_DENIED(FORBIDDEN, "캠페인 접근 권한이 없습니다."),
+    CAMPAIGN_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "캠페인 생성에 실패했습니다."),
+    CAMPAIGN_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "캠페인 수정에 실패했습니다."),
+    CAMPAIGN_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "캠페인 삭제에 실패했습니다."),
+    CAMPAIGN_ALREADY_ACTIVE(BAD_REQUEST, "이미 활성화된 캠페인입니다."),
+    CAMPAIGN_CANNOT_MODIFY(BAD_REQUEST, "활성 또는 완료된 캠페인은 수정할 수 없습니다."),
+    CAMPAIGN_OVERLAPPING(BAD_REQUEST, "해당 기간에 이미 진행 중인 캠페인이 있습니다."),
+    CAMPAIGN_INVALID_DATE_RANGE(BAD_REQUEST, "잘못된 캠페인 기간입니다."),
+    CAMPAIGN_TARGET_EXCEEDED(BAD_REQUEST, "목표 피드백 수가 제한을 초과했습니다."),
+    FOOD_ITEM_NOT_FOUND(NOT_FOUND, "음식 아이템을 찾을 수 없습니다."),
+    UNAUTHORIZED_ACCESS(FORBIDDEN, "접근 권한이 없습니다."),
+
     // 알림 관련 에러
     NOTIFICATION_SERVICE_UNAVAILABLE(HttpStatus.INTERNAL_SERVER_ERROR, "알림 서비스를 사용할 수 없습니다."),
     NOTIFICATION_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "알림 전송에 실패했습니다."),
