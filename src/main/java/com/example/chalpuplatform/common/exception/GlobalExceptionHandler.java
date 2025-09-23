@@ -111,6 +111,17 @@ public class GlobalExceptionHandler {
 
 
     /**
+     * CampaignException 처리
+     */
+    @ExceptionHandler(CampaignException.class)
+    public ResponseEntity<ApiResponse<Void>> handleCampaignException(CampaignException ex) {
+        ErrorMessage errorMessage = ex.getErrorMessage();
+        logger.error("CampaignException: {}", errorMessage.getMessage());
+        return ResponseEntity.status(errorMessage.getHttpStatus())
+                .body(ApiResponse.error(errorMessage.getHttpStatus().value(), errorMessage.getMessage()));
+    }
+
+    /**
      * FeedbackException 처리
      */
     @ExceptionHandler(FeedbackException.class)
