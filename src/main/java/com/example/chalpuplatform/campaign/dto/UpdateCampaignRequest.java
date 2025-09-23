@@ -23,7 +23,7 @@ public class UpdateCampaignRequest {
 
     @NotNull
     @Min(1)
-    @Max(10000)
+    @Max(100)
     private Integer targetFeedbackCount;
 
     @NotNull
