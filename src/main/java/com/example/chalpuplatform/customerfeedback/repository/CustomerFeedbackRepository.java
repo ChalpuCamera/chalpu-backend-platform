@@ -1,6 +1,8 @@
 package com.example.chalpuplatform.customerfeedback.repository;
 
 import com.example.chalpuplatform.customerfeedback.domain.CustomerFeedback;
+import com.example.chalpuplatform.fooditem.domain.FoodItem;
+import com.example.chalpuplatform.store.domain.Store;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -77,4 +80,53 @@ public interface CustomerFeedbackRepository extends JpaRepository<CustomerFeedba
         ORDER BY cf.createdAt DESC
     """)
     Page<CustomerFeedback> findByFoodItemIdWithDetails(@Param("foodItemId") Long foodItemId, Pageable pageable);
+
+    // 캠페인 조건에 맞는 피드백 수 조회
+    @Query("""
+        SELECT COUNT(cf) FROM CustomerFeedback cf
+        WHERE cf.foodItem = :foodItem
+        AND cf.store = :store
+        AND cf.createdAt BETWEEN :startDate AND :endDate
+        AND cf.isActive = true
+    """)
+    long countByFoodItemAndStoreBetweenDates(
+        @Param("foodItem") FoodItem foodItem,
+        @Param("store") Store store,
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate
+    );
+
+    // 캠페인 기간별 일별 피드백 수 집계
+    @Query("""
+        SELECT DATE(cf.createdAt) as date, COUNT(cf) as count
+        FROM CustomerFeedback cf
+        WHERE cf.foodItem = :foodItem
+        AND cf.store = :store
+        AND cf.createdAt BETWEEN :startDate AND :endDate
+        AND cf.isActive = true
+        GROUP BY DATE(cf.createdAt)
+        ORDER BY date
+    """)
+    List<Object[]> findDailyFeedbackCounts(
+        @Param("foodItem") FoodItem foodItem,
+        @Param("store") Store store,
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate
+    );
+
+    // 캠페인 조건에 맞는 평균 만족도 조회
+    @Query("""
+        SELECT AVG(cf.overallSatisfaction) FROM CustomerFeedback cf
+        WHERE cf.foodItem = :foodItem
+        AND cf.store = :store
+        AND cf.createdAt BETWEEN :startDate AND :endDate
+        AND cf.isActive = true
+        AND cf.overallSatisfaction IS NOT NULL
+    """)
+    Double findAverageSatisfactionForCampaign(
+        @Param("foodItem") FoodItem foodItem,
+        @Param("store") Store store,
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate
+    );
 }
