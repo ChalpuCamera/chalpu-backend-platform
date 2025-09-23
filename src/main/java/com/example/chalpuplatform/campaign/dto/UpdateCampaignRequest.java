@@ -14,6 +14,9 @@ import java.time.LocalDateTime;
 @Builder
 public class UpdateCampaignRequest {
 
+    @NotNull
+    private Long campaignId;
+
     @NotBlank
     @Size(min = 1, max = 100)
     private String name;
@@ -25,6 +28,8 @@ public class UpdateCampaignRequest {
     @Min(1)
     @Max(100)
     private Integer targetFeedbackCount;
+
+    private Long storeId;
 
     @NotNull
     private LocalDateTime startDate;

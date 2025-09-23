@@ -41,35 +41,33 @@ public class CampaignController {
             .body(ApiResponse.success(Map.of("campaignId", campaignId)));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping
     @Operation(summary = "캠페인 수정", description = "기존 캠페인 정보를 수정합니다")
     public ResponseEntity<ApiResponse<Void>> updateCampaign(
-        @PathVariable("id") Long campaignId,
         @Valid @RequestBody UpdateCampaignRequest request,
         @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        campaignCommandService.updateCampaign(campaignId, request, userDetails.getId());
+        campaignCommandService.updateCampaign(request.getCampaignId(), request, userDetails.getId());
         return ResponseEntity.ok(ApiResponse.success());
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping
     @Operation(summary = "캠페인 삭제", description = "캠페인을 소프트 삭제합니다")
     public ResponseEntity<ApiResponse<Void>> deleteCampaign(
-        @PathVariable("id") Long campaignId,
+        @Valid @RequestBody DeleteCampaignRequest request,
         @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        campaignCommandService.deleteCampaign(campaignId, userDetails.getId());
+        campaignCommandService.deleteCampaign(request.getCampaignId(), userDetails.getId());
         return ResponseEntity.ok(ApiResponse.success());
     }
 
-    @PatchMapping("/{id}/status")
+    @PatchMapping("/status")
     @Operation(summary = "캠페인 상태 변경", description = "캠페인의 상태를 변경합니다")
     public ResponseEntity<ApiResponse<Void>> changeCampaignStatus(
-        @PathVariable("id") Long campaignId,
         @Valid @RequestBody ChangeCampaignStatusRequest request,
         @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        campaignCommandService.changeCampaignStatus(campaignId, request.getStatus(), userDetails.getId());
+        campaignCommandService.changeCampaignStatus(request.getCampaignId(), request.getStatus(), userDetails.getId());
         return ResponseEntity.ok(ApiResponse.success());
     }
 

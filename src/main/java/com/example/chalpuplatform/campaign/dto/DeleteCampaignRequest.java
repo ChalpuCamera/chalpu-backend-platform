@@ -1,6 +1,5 @@
 package com.example.chalpuplatform.campaign.dto;
 
-import com.example.chalpuplatform.campaign.domain.Campaign;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,11 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ChangeCampaignStatusRequest {
+public class DeleteCampaignRequest {
 
     @NotNull
     private Long campaignId;
-
-    @NotNull
-    private Campaign.CampaignStatus status;
 }
