@@ -7,6 +7,8 @@ import com.example.chalpuplatform.common.response.PageResponse;
 import com.example.chalpuplatform.common.response.ApiResponse;
 import com.example.chalpuplatform.oauth.jwt.UserDetailsImpl;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse as SwaggerApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +34,12 @@ public class CampaignController {
     // Command operations
     @PostMapping
     @Operation(summary = "캠페인 생성", description = "새로운 캠페인을 생성합니다")
+    @ApiResponses({
+        @SwaggerApiResponse(responseCode = "201", description = "캠페인 생성 성공"),
+        @SwaggerApiResponse(responseCode = "400", description = "잘못된 요청"),
+        @SwaggerApiResponse(responseCode = "403", description = "권한 없음"),
+        @SwaggerApiResponse(responseCode = "404", description = "매장 또는 음식을 찾을 수 없음")
+    })
     public ResponseEntity<ApiResponse<Map<String, Long>>> createCampaign(
         @Valid @RequestBody CreateCampaignRequest request,
         @AuthenticationPrincipal UserDetailsImpl userDetails
@@ -43,6 +51,12 @@ public class CampaignController {
 
     @PutMapping
     @Operation(summary = "캠페인 수정", description = "기존 캠페인 정보를 수정합니다")
+    @ApiResponses({
+        @SwaggerApiResponse(responseCode = "200", description = "캠페인 수정 성공"),
+        @SwaggerApiResponse(responseCode = "400", description = "잘못된 요청"),
+        @SwaggerApiResponse(responseCode = "403", description = "권한 없음"),
+        @SwaggerApiResponse(responseCode = "404", description = "캠페인을 찾을 수 없음")
+    })
     public ResponseEntity<ApiResponse<Void>> updateCampaign(
         @Valid @RequestBody UpdateCampaignRequest request,
         @AuthenticationPrincipal UserDetailsImpl userDetails
@@ -53,6 +67,12 @@ public class CampaignController {
 
     @DeleteMapping
     @Operation(summary = "캠페인 삭제", description = "캠페인을 소프트 삭제합니다")
+    @ApiResponses({
+        @SwaggerApiResponse(responseCode = "200", description = "캠페인 삭제 성공"),
+        @SwaggerApiResponse(responseCode = "400", description = "활성 상태 캠페인은 삭제 불가"),
+        @SwaggerApiResponse(responseCode = "403", description = "권한 없음"),
+        @SwaggerApiResponse(responseCode = "404", description = "캠페인을 찾을 수 없음")
+    })
     public ResponseEntity<ApiResponse<Void>> deleteCampaign(
         @Valid @RequestBody DeleteCampaignRequest request,
         @AuthenticationPrincipal UserDetailsImpl userDetails
@@ -63,6 +83,12 @@ public class CampaignController {
 
     @PatchMapping("/status")
     @Operation(summary = "캠페인 상태 변경", description = "캠페인의 상태를 변경합니다")
+    @ApiResponses({
+        @SwaggerApiResponse(responseCode = "200", description = "캠페인 상태 변경 성공"),
+        @SwaggerApiResponse(responseCode = "400", description = "유효하지 않은 상태"),
+        @SwaggerApiResponse(responseCode = "403", description = "권한 없음"),
+        @SwaggerApiResponse(responseCode = "404", description = "캠페인을 찾을 수 없음")
+    })
     public ResponseEntity<ApiResponse<Void>> changeCampaignStatus(
         @Valid @RequestBody ChangeCampaignStatusRequest request,
         @AuthenticationPrincipal UserDetailsImpl userDetails
@@ -74,6 +100,10 @@ public class CampaignController {
     // Query operations
     @GetMapping("/{id}")
     @Operation(summary = "캠페인 상세 조회", description = "캠페인의 상세 정보를 조회합니다")
+    @ApiResponses({
+        @SwaggerApiResponse(responseCode = "200", description = "캠페인 조회 성공"),
+        @SwaggerApiResponse(responseCode = "404", description = "캠페인을 찾을 수 없음")
+    })
     public ResponseEntity<ApiResponse<CampaignDetailResponse>> getCampaign(
         @PathVariable("id") Long campaignId
     ) {
@@ -83,6 +113,10 @@ public class CampaignController {
 
     @GetMapping("/store/{storeId}")
     @Operation(summary = "매장별 캠페인 목록 조회", description = "특정 매장의 캠페인 목록을 페이징하여 조회합니다")
+    @ApiResponses({
+        @SwaggerApiResponse(responseCode = "200", description = "캠페인 목록 조회 성공"),
+        @SwaggerApiResponse(responseCode = "404", description = "매장을 찾을 수 없음")
+    })
     public ResponseEntity<ApiResponse<PageResponse<CampaignResponse>>> getCampaignsByStore(
         @PathVariable("storeId") Long storeId,
         @PageableDefault(size = 20) Pageable pageable
@@ -102,6 +136,10 @@ public class CampaignController {
 
     @GetMapping("/{id}/statistics")
     @Operation(summary = "캠페인 통계 조회", description = "캠페인의 상세 통계 정보를 조회합니다")
+    @ApiResponses({
+        @SwaggerApiResponse(responseCode = "200", description = "통계 조회 성공"),
+        @SwaggerApiResponse(responseCode = "404", description = "캠페인을 찾을 수 없음")
+    })
     public ResponseEntity<ApiResponse<CampaignStatisticsResponse>> getCampaignStatistics(
         @PathVariable("id") Long campaignId
     ) {
