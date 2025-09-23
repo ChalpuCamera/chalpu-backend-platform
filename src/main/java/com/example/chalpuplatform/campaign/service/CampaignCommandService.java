@@ -12,7 +12,6 @@ import com.example.chalpuplatform.store.domain.Store;
 import com.example.chalpuplatform.store.domain.UserStoreRole;
 import com.example.chalpuplatform.store.repository.StoreRepository;
 import com.example.chalpuplatform.store.repository.UserStoreRoleRepository;
-import com.example.chalpuplatform.user.domain.Role;
 import com.example.chalpuplatform.user.domain.User;
 import com.example.chalpuplatform.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -88,10 +87,8 @@ public class CampaignCommandService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new CampaignException(ErrorMessage.USER_NOT_FOUND));
 
-        // 권한 확인
-        if (!isStoreOwner(user, campaign.getStore())) {
-            throw new CampaignException(ErrorMessage.UNAUTHORIZED_ACCESS);
-        }
+        UserStoreRole usr = userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrueWithoutJoin(userId, request.getStoreId())
+                .orElseThrow(() -> new CampaignException(ErrorMessage.STORE_ACCESS_DENIED));
 
         // 도메인 검증
         campaignDomainService.validateTargetFeedbackCount(request.getTargetFeedbackCount());
@@ -119,10 +116,9 @@ public class CampaignCommandService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new CampaignException(ErrorMessage.USER_NOT_FOUND));
 
-        // 권한 확인
-        if (!isStoreOwner(user, campaign.getStore())) {
-            throw new CampaignException(ErrorMessage.UNAUTHORIZED_ACCESS);
-        }
+        // UserStoreRole로 권한 확인
+        UserStoreRole usr = userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrueWithoutJoin(userId, campaign.getStore().getId())
+            .orElseThrow(() -> new CampaignException(ErrorMessage.STORE_ACCESS_DENIED));
 
         // 활성 캠페인은 삭제 불가
         if (campaign.getStatus() == Campaign.CampaignStatus.ACTIVE) {
@@ -145,10 +141,9 @@ public class CampaignCommandService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new CampaignException(ErrorMessage.USER_NOT_FOUND));
 
-        // 권한 확인
-        if (!isStoreOwner(user, campaign.getStore())) {
-            throw new CampaignException(ErrorMessage.UNAUTHORIZED_ACCESS);
-        }
+        // UserStoreRole로 권한 확인
+        UserStoreRole usr = userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrueWithoutJoin(userId, campaign.getStore().getId())
+            .orElseThrow(() -> new CampaignException(ErrorMessage.STORE_ACCESS_DENIED));
 
         // 상태 변경
         switch (newStatus) {
@@ -161,12 +156,5 @@ public class CampaignCommandService {
 
         campaignRepository.save(campaign);
         log.info("캠페인 상태 변경 완료: campaignId={}, newStatus={}", campaignId, newStatus);
-    }
-
-    private boolean isStoreOwner(User user, Store store) {
-        // User의 Role이 OWNER이고, 해당 매장의 소유자인지 확인하는 로직
-        // 실제 구현에서는 User-Store 매핑 테이블이나 관계를 확인해야 함
-        // 여기서는 간단히 OWNER 권한만 확인
-        return user.getRole() == Role.ROLE_OWNER;
     }
 }
