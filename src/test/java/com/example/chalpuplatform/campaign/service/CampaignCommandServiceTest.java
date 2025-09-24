@@ -119,8 +119,7 @@ class CampaignCommandServiceTest {
                 .storeId(1L)
                 .foodItemId(1L)
                 .targetFeedbackCount(50)
-                .startDate(LocalDateTime.now().plusDays(1))
-                .endDate(LocalDateTime.now().plusDays(30))
+                .targetDays(30)
                 .build();
         }
 
@@ -285,11 +284,12 @@ class CampaignCommandServiceTest {
         @BeforeEach
         void setUp() {
             request = UpdateCampaignRequest.builder()
+                .campaignId(1L)
                 .name("수정된 캠페인")
                 .description("수정된 설명")
                 .targetFeedbackCount(100)
-                .startDate(LocalDateTime.now().plusDays(2))
-                .endDate(LocalDateTime.now().plusDays(60))
+                .targetDays(60)
+                .storeId(1L)
                 .build();
         }
 

@@ -107,8 +107,6 @@ public enum ErrorMessage {
     CAMPAIGN_OVERLAPPING(BAD_REQUEST, "해당 기간에 이미 진행 중인 캠페인이 있습니다."),
     CAMPAIGN_INVALID_DATE_RANGE(BAD_REQUEST, "잘못된 캠페인 기간입니다."),
     CAMPAIGN_TARGET_EXCEEDED(BAD_REQUEST, "목표 피드백 수가 제한을 초과했습니다."),
-    FOOD_ITEM_NOT_FOUND(NOT_FOUND, "음식 아이템을 찾을 수 없습니다."),
-    UNAUTHORIZED_ACCESS(FORBIDDEN, "접근 권한이 없습니다."),
 
     // 알림 관련 에러
     NOTIFICATION_SERVICE_UNAVAILABLE(HttpStatus.INTERNAL_SERVER_ERROR, "알림 서비스를 사용할 수 없습니다."),

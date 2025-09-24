@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Data
 @NoArgsConstructor
@@ -44,6 +45,9 @@ public class CampaignResponse {
     @Schema(description = "캠페인 상태", example = "활성")
     private String status;
 
+    @Schema(description = "캠페인 진행 일수", example = "10")
+    private Integer targetDays;
+
     @Schema(description = "캠페인 시작일", example = "2024-01-01 00:00:00")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startDate;
@@ -61,6 +65,8 @@ public class CampaignResponse {
     private LocalDateTime updatedAt;
 
     public static CampaignResponse from(Campaign campaign) {
+        int targetDays = (int) ChronoUnit.DAYS.between(campaign.getStartDate(), campaign.getEndDate()) + 1;
+
         return CampaignResponse.builder()
             .id(campaign.getId())
             .name(campaign.getName())
@@ -71,6 +77,7 @@ public class CampaignResponse {
             .foodItemName(campaign.getFoodItem().getFoodName())
             .targetFeedbackCount(campaign.getTargetFeedbackCount())
             .status(campaign.getStatus().getKorean())
+            .targetDays(targetDays)
             .startDate(campaign.getStartDate())
             .endDate(campaign.getEndDate())
             .createdAt(campaign.getCreatedAt())

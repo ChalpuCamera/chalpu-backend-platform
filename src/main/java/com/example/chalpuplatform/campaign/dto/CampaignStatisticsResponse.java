@@ -28,9 +28,6 @@ public class CampaignStatisticsResponse {
     @Schema(description = "총 피드백 수", example = "45")
     private Long totalFeedbackCount;
 
-    @Schema(description = "진행률 (%)", example = "45.0")
-    private Double progressRate;
-
     @Schema(description = "평균 만족도", example = "4.5")
     private Double averageSatisfaction;
 
