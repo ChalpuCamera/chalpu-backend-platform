@@ -4,6 +4,7 @@ import com.example.chalpuplatform.campaign.domain.Campaign;
 import com.example.chalpuplatform.campaign.dto.CampaignDetailResponse;
 import com.example.chalpuplatform.campaign.dto.CampaignResponse;
 import com.example.chalpuplatform.campaign.dto.CampaignStatisticsResponse;
+import com.example.chalpuplatform.campaign.dto.GetCampaignsByStoreRequest;
 import com.example.chalpuplatform.campaign.repository.CampaignRepository;
 import com.example.chalpuplatform.common.response.PageResponse;
 import com.example.chalpuplatform.common.exception.CampaignException;
@@ -51,28 +52,23 @@ public class CampaignQueryService {
         return CampaignDetailResponse.from(campaign, currentFeedbackCount);
     }
 
-    public PageResponse<CampaignResponse> getCampaignsByStore(Long storeId, Pageable pageable) {
-        Store store = storeRepository.findById(storeId)
+    public PageResponse<CampaignResponse> getCampaignsByStore(GetCampaignsByStoreRequest request, Pageable pageable) {
+        Store store = storeRepository.findById(request.getStoreId())
             .orElseThrow(() -> new CampaignException(ErrorMessage.STORE_NOT_FOUND));
 
-        Page<Campaign> campaigns = campaignRepository.findByStoreAndIsActiveTrue(store, pageable);
+        Page<Campaign> campaigns;
+
+        if (request.getStatus() != null) {
+            // 상태가 지정된 경우 필터링
+            campaigns = campaignRepository.findByStoreAndStatusAndIsActiveTrue(store, request.getStatus(), pageable);
+        } else {
+            // 상태가 지정되지 않은 경우 모든 활성 캠페인
+            campaigns = campaignRepository.findByStoreAndIsActiveTrue(store, pageable);
+        }
 
         Page<CampaignResponse> campaignResponses = campaigns.map(CampaignResponse::from);
 
         return PageResponse.from(campaignResponses);
-    }
-
-    public List<CampaignResponse> getActiveCampaignsByStore(Long storeId) {
-        Store store = storeRepository.findById(storeId)
-            .orElseThrow(() -> new CampaignException(ErrorMessage.STORE_NOT_FOUND));
-
-        List<Campaign> activeCampaigns = campaignRepository.findActiveCampaignsByStore(
-            store, LocalDateTime.now()
-        );
-
-        return activeCampaigns.stream()
-            .map(CampaignResponse::from)
-            .collect(Collectors.toList());
     }
 
     public CampaignDetailResponse getCampaignWithProgress(Long campaignId) {
@@ -137,7 +133,6 @@ public class CampaignQueryService {
             .campaignName(campaign.getName())
             .targetFeedbackCount(campaign.getTargetFeedbackCount())
             .totalFeedbackCount(totalFeedbackCount)
-            .progressRate(campaign.calculateProgressRate(totalFeedbackCount))
             .averageSatisfaction(averageSatisfaction)
             .daysRemaining(daysRemaining)
             .totalDays(totalDays)
@@ -145,39 +140,6 @@ public class CampaignQueryService {
             .build();
     }
 
-    public Map<String, Object> getDashboardData(Long storeId) {
-        Store store = storeRepository.findById(storeId)
-            .orElseThrow(() -> new CampaignException(ErrorMessage.STORE_NOT_FOUND));
-
-        // 활성 캠페인 목록
-        List<Campaign> activeCampaigns = campaignRepository.findActiveCampaignsByStore(
-            store, LocalDateTime.now()
-        );
-
-        // 각 캠페인의 진행 상황
-        List<Map<String, Object>> campaignProgress = new ArrayList<>();
-        for (Campaign campaign : activeCampaigns) {
-            long currentCount = getCurrentFeedbackCount(campaign);
-            Map<String, Object> progress = new HashMap<>();
-            progress.put("campaignId", campaign.getId());
-            progress.put("campaignName", campaign.getName());
-            progress.put("foodItemName", campaign.getFoodItem().getFoodName());
-            progress.put("targetCount", campaign.getTargetFeedbackCount());
-            progress.put("currentCount", currentCount);
-            progress.put("progressRate", campaign.calculateProgressRate(currentCount));
-            progress.put("status", campaign.getStatus().getKorean());
-            progress.put("daysRemaining", ChronoUnit.DAYS.between(LocalDateTime.now(), campaign.getEndDate()));
-            campaignProgress.add(progress);
-        }
-
-        // 전체 통계
-        Map<String, Object> dashboard = new HashMap<>();
-        dashboard.put("activeCampaignCount", activeCampaigns.size());
-        dashboard.put("campaigns", campaignProgress);
-        dashboard.put("lastUpdated", LocalDateTime.now());
-
-        return dashboard;
-    }
 
     private long getCurrentFeedbackCount(Campaign campaign) {
         return customerFeedbackRepository.countByFoodItemAndStoreBetweenDates(

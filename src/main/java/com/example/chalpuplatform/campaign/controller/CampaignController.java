@@ -18,7 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -110,48 +109,17 @@ public class CampaignController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @GetMapping("/store/{storeId}")
-    @Operation(summary = "매장별 캠페인 목록 조회", description = "특정 매장의 캠페인 목록을 페이징하여 조회합니다")
+    @PostMapping("/store/list")
+    @Operation(summary = "매장별 캠페인 목록 조회", description = "특정 매장의 캠페인 목록을 페이징하여 조회합니다. 상태로 필터링 가능")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "캠페인 목록 조회 성공"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "매장을 찾을 수 없음")
     })
     public ResponseEntity<ApiResponse<PageResponse<CampaignResponse>>> getCampaignsByStore(
-        @PathVariable("storeId") Long storeId,
+        @Valid @RequestBody GetCampaignsByStoreRequest request,
         @PageableDefault(size = 20) Pageable pageable
     ) {
-        PageResponse<CampaignResponse> response = campaignQueryService.getCampaignsByStore(storeId, pageable);
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
-    @GetMapping("/store/{storeId}/active")
-    @Operation(summary = "매장의 활성 캠페인 조회", description = "특정 매장의 활성 상태 캠페인만 조회합니다")
-    public ResponseEntity<ApiResponse<List<CampaignResponse>>> getActiveCampaignsByStore(
-        @PathVariable("storeId") Long storeId
-    ) {
-        List<CampaignResponse> response = campaignQueryService.getActiveCampaignsByStore(storeId);
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
-    @GetMapping("/{id}/statistics")
-    @Operation(summary = "캠페인 통계 조회", description = "캠페인의 상세 통계 정보를 조회합니다")
-    @ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "통계 조회 성공"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "캠페인을 찾을 수 없음")
-    })
-    public ResponseEntity<ApiResponse<CampaignStatisticsResponse>> getCampaignStatistics(
-        @PathVariable("id") Long campaignId
-    ) {
-        CampaignStatisticsResponse response = campaignQueryService.getCampaignStatistics(campaignId);
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
-    @GetMapping("/store/{storeId}/dashboard")
-    @Operation(summary = "매장 캠페인 대시보드", description = "매장의 캠페인 대시보드 데이터를 조회합니다")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getCampaignDashboard(
-        @PathVariable("storeId") Long storeId
-    ) {
-        Map<String, Object> response = campaignQueryService.getDashboardData(storeId);
+        PageResponse<CampaignResponse> response = campaignQueryService.getCampaignsByStore(request, pageable);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }
