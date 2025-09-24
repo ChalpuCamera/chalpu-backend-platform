@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Data
 @NoArgsConstructor
@@ -44,14 +45,14 @@ public class CampaignDetailResponse {
     @Schema(description = "현재 피드백 수", example = "45")
     private Long currentFeedbackCount;
 
-    @Schema(description = "진행률 (%)", example = "45.0")
-    private Double progressRate;
-
     @Schema(description = "캠페인 상태", example = "활성")
     private String status;
 
     @Schema(description = "활성 여부", example = "true")
     private Boolean isActive;
+
+    @Schema(description = "캠페인 진행 일수", example = "10")
+    private Integer targetDays;
 
     @Schema(description = "캠페인 시작일", example = "2024-01-01 00:00:00")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
@@ -61,15 +62,9 @@ public class CampaignDetailResponse {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endDate;
 
-    @Schema(description = "생성일시", example = "2024-01-01 00:00:00")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime createdAt;
-
-    @Schema(description = "수정일시", example = "2024-01-01 00:00:00")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime updatedAt;
-
     public static CampaignDetailResponse from(Campaign campaign, long currentFeedbackCount) {
+        int targetDays = (int) ChronoUnit.DAYS.between(campaign.getStartDate(), campaign.getEndDate()) + 1;
+
         return CampaignDetailResponse.builder()
             .id(campaign.getId())
             .name(campaign.getName())
@@ -80,13 +75,11 @@ public class CampaignDetailResponse {
             .foodItemName(campaign.getFoodItem().getFoodName())
             .targetFeedbackCount(campaign.getTargetFeedbackCount())
             .currentFeedbackCount(currentFeedbackCount)
-            .progressRate(campaign.calculateProgressRate(currentFeedbackCount))
             .status(campaign.getStatus().getKorean())
             .isActive(campaign.isActive())
+            .targetDays(targetDays)
             .startDate(campaign.getStartDate())
             .endDate(campaign.getEndDate())
-            .createdAt(campaign.getCreatedAt())
-            .updatedAt(campaign.getUpdatedAt())
             .build();
     }
 }

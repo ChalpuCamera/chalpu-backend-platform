@@ -126,13 +126,6 @@ public class Campaign extends BaseTimeEntity {
         this.endDate = endDate;
     }
 
-    public double calculateProgressRate(long currentFeedbackCount) {
-        if (this.targetFeedbackCount == null || this.targetFeedbackCount == 0) {
-            return 0.0;
-        }
-        return Math.min(100.0, (double) currentFeedbackCount / this.targetFeedbackCount * 100);
-    }
-
     public boolean isTargetReached(long currentFeedbackCount) {
         return currentFeedbackCount >= this.targetFeedbackCount;
     }
