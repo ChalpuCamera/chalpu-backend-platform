@@ -4,6 +4,7 @@ import com.example.chalpuplatform.campaign.domain.Campaign;
 import com.example.chalpuplatform.campaign.dto.CampaignDetailResponse;
 import com.example.chalpuplatform.campaign.dto.CampaignResponse;
 import com.example.chalpuplatform.campaign.dto.CampaignStatisticsResponse;
+import com.example.chalpuplatform.campaign.dto.GetCampaignsByStoreRequest;
 import com.example.chalpuplatform.campaign.repository.CampaignRepository;
 import com.example.chalpuplatform.common.exception.CampaignException;
 import com.example.chalpuplatform.common.exception.ErrorMessage;
@@ -142,7 +143,6 @@ class CampaignQueryServiceTest {
             assertThat(response.getName()).isEqualTo("테스트 캠페인");
             assertThat(response.getCurrentFeedbackCount()).isEqualTo(75L);
             assertThat(response.getTargetFeedbackCount()).isEqualTo(100);
-            assertThat(response.getProgressRate()).isEqualTo(75.0);
             assertThat(response.getIsActive()).isTrue();
 
             verify(customerFeedbackRepository).countByFoodItemAndStoreBetweenDates(
@@ -168,7 +168,6 @@ class CampaignQueryServiceTest {
 
             // then
             assertThat(response.getCurrentFeedbackCount()).isEqualTo(100L);
-            assertThat(response.getProgressRate()).isEqualTo(100.0);
 
             verify(campaignRepository).save(campaign);
             assertThat(campaign.getStatus()).isEqualTo(Campaign.CampaignStatus.COMPLETED);
@@ -208,7 +207,10 @@ class CampaignQueryServiceTest {
                 .willReturn(campaignPage);
 
             // when
-            PageResponse<CampaignResponse> response = campaignQueryService.getCampaignsByStore(1L, pageable);
+            GetCampaignsByStoreRequest request = GetCampaignsByStoreRequest.builder()
+                .storeId(1L)
+                .build();
+            PageResponse<CampaignResponse> response = campaignQueryService.getCampaignsByStore(request, pageable);
 
             // then
             assertThat(response).isNotNull();
@@ -230,7 +232,10 @@ class CampaignQueryServiceTest {
             given(storeRepository.findById(999L)).willReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> campaignQueryService.getCampaignsByStore(999L, pageable))
+            GetCampaignsByStoreRequest request = GetCampaignsByStoreRequest.builder()
+                .storeId(999L)
+                .build();
+            assertThatThrownBy(() -> campaignQueryService.getCampaignsByStore(request, pageable))
                 .isInstanceOf(CampaignException.class)
                 .hasFieldOrPropertyWithValue("errorMessage", ErrorMessage.STORE_NOT_FOUND);
 
@@ -249,53 +254,43 @@ class CampaignQueryServiceTest {
                 .willReturn(emptyPage);
 
             // when
-            PageResponse<CampaignResponse> response = campaignQueryService.getCampaignsByStore(1L, pageable);
+            GetCampaignsByStoreRequest request = GetCampaignsByStoreRequest.builder()
+                .storeId(1L)
+                .build();
+            PageResponse<CampaignResponse> response = campaignQueryService.getCampaignsByStore(request, pageable);
 
             // then
             assertThat(response.getContent()).isEmpty();
             assertThat(response.getTotalElements()).isEqualTo(0);
             assertThat(response.getTotalPages()).isEqualTo(0);
         }
-    }
-
-    @Nested
-    @DisplayName("활성 캠페인 조회 테스트")
-    class GetActiveCampaignsByStoreTest {
 
         @Test
-        @DisplayName("매장의 활성 캠페인 목록을 조회한다")
-        void getActiveCampaignsByStore_Success() {
+        @DisplayName("상태로 필터링하여 캠페인 목록을 조회한다")
+        void getCampaignsByStore_WithStatusFilter() {
             // given
+            GetCampaignsByStoreRequest request = GetCampaignsByStoreRequest.builder()
+                .storeId(1L)
+                .status(Campaign.CampaignStatus.ACTIVE)
+                .build();
+            Pageable pageable = PageRequest.of(0, 10);
             List<Campaign> activeCampaigns = Arrays.asList(campaign, activeCampaign);
+            Page<Campaign> campaignPage = new PageImpl<>(activeCampaigns, pageable, activeCampaigns.size());
 
             given(storeRepository.findById(1L)).willReturn(Optional.of(store));
-            given(campaignRepository.findActiveCampaignsByStore(eq(store), any(LocalDateTime.class)))
-                .willReturn(activeCampaigns);
+            given(campaignRepository.findByStoreAndStatusAndIsActiveTrue(store, Campaign.CampaignStatus.ACTIVE, pageable))
+                .willReturn(campaignPage);
 
             // when
-            List<CampaignResponse> responses = campaignQueryService.getActiveCampaignsByStore(1L);
+            PageResponse<CampaignResponse> response = campaignQueryService.getCampaignsByStore(request, pageable);
 
             // then
-            assertThat(responses).hasSize(2);
-            assertThat(responses.get(0).getStatus()).isEqualTo("활성");
-            assertThat(responses.get(1).getStatus()).isEqualTo("활성");
+            assertThat(response.getContent()).hasSize(2);
+            assertThat(response.getTotalElements()).isEqualTo(2);
+            assertThat(response.getContent()).allMatch(c -> c.getStatus().equals("활성"));
 
-            verify(campaignRepository).findActiveCampaignsByStore(eq(store), any(LocalDateTime.class));
-        }
-
-        @Test
-        @DisplayName("활성 캠페인이 없을 때 빈 목록을 반환한다")
-        void getActiveCampaignsByStore_EmptyResult() {
-            // given
-            given(storeRepository.findById(1L)).willReturn(Optional.of(store));
-            given(campaignRepository.findActiveCampaignsByStore(eq(store), any(LocalDateTime.class)))
-                .willReturn(List.of());
-
-            // when
-            List<CampaignResponse> responses = campaignQueryService.getActiveCampaignsByStore(1L);
-
-            // then
-            assertThat(responses).isEmpty();
+            verify(campaignRepository).findByStoreAndStatusAndIsActiveTrue(store, Campaign.CampaignStatus.ACTIVE, pageable);
+            verify(campaignRepository, never()).findByStoreAndIsActiveTrue(any(), any());
         }
     }
 
@@ -336,7 +331,6 @@ class CampaignQueryServiceTest {
             assertThat(response.getCampaignId()).isEqualTo(1L);
             assertThat(response.getCampaignName()).isEqualTo("테스트 캠페인");
             assertThat(response.getTotalFeedbackCount()).isEqualTo(75L);
-            assertThat(response.getProgressRate()).isEqualTo(75.0);
             assertThat(response.getAverageSatisfaction()).isEqualTo(4.5);
             assertThat(response.getDailyFeedbacks()).hasSize(5);
 
@@ -367,7 +361,6 @@ class CampaignQueryServiceTest {
 
             // then
             assertThat(response.getTotalFeedbackCount()).isEqualTo(0L);
-            assertThat(response.getProgressRate()).isEqualTo(0.0);
             assertThat(response.getAverageSatisfaction()).isNull();
             assertThat(response.getDailyFeedbacks()).isEmpty();
         }
@@ -386,77 +379,6 @@ class CampaignQueryServiceTest {
 
             // then
             assertThat(response.getDaysRemaining()).isEqualTo(0);
-            assertThat(response.getProgressRate()).isEqualTo(100.0);
-        }
-    }
-
-    @Nested
-    @DisplayName("캠페인 대시보드 조회 테스트")
-    class GetDashboardDataTest {
-
-        @Test
-        @DisplayName("매장의 캠페인 대시보드 데이터를 조회한다")
-        void getDashboardData_Success() {
-            // given
-            List<Campaign> activeCampaigns = Arrays.asList(campaign, activeCampaign);
-
-            given(storeRepository.findById(1L)).willReturn(Optional.of(store));
-            given(campaignRepository.findActiveCampaignsByStore(eq(store), any(LocalDateTime.class)))
-                .willReturn(activeCampaigns);
-            given(customerFeedbackRepository.countByFoodItemAndStoreBetweenDates(
-                any(), any(), any(), any()
-            )).willReturn(75L, 40L); // 각 캠페인별 피드백 수
-
-            // when
-            Map<String, Object> dashboard = campaignQueryService.getDashboardData(1L);
-
-            // then
-            assertThat(dashboard).isNotNull();
-            assertThat(dashboard.get("activeCampaignCount")).isEqualTo(2);
-            assertThat(dashboard.get("lastUpdated")).isNotNull();
-
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> campaigns = (List<Map<String, Object>>) dashboard.get("campaigns");
-            assertThat(campaigns).hasSize(2);
-
-            Map<String, Object> firstCampaign = campaigns.get(0);
-            assertThat(firstCampaign.get("campaignId")).isEqualTo(1L);
-            assertThat(firstCampaign.get("campaignName")).isEqualTo("테스트 캠페인");
-            assertThat(firstCampaign.get("foodItemName")).isEqualTo("테스트 음식");
-            assertThat(firstCampaign.get("targetCount")).isEqualTo(100);
-            assertThat(firstCampaign.get("currentCount")).isEqualTo(75L);
-            assertThat(firstCampaign.get("progressRate")).isEqualTo(75.0);
-            assertThat(firstCampaign.get("status")).isEqualTo("활성");
-        }
-
-        @Test
-        @DisplayName("활성 캠페인이 없는 매장의 대시보드를 조회한다")
-        void getDashboardData_NoCampaigns() {
-            // given
-            given(storeRepository.findById(1L)).willReturn(Optional.of(store));
-            given(campaignRepository.findActiveCampaignsByStore(eq(store), any(LocalDateTime.class)))
-                .willReturn(List.of());
-
-            // when
-            Map<String, Object> dashboard = campaignQueryService.getDashboardData(1L);
-
-            // then
-            assertThat(dashboard.get("activeCampaignCount")).isEqualTo(0);
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> campaigns = (List<Map<String, Object>>) dashboard.get("campaigns");
-            assertThat(campaigns).isEmpty();
-        }
-
-        @Test
-        @DisplayName("존재하지 않는 매장의 대시보드 조회 시 예외가 발생한다")
-        void getDashboardData_StoreNotFound() {
-            // given
-            given(storeRepository.findById(999L)).willReturn(Optional.empty());
-
-            // when & then
-            assertThatThrownBy(() -> campaignQueryService.getDashboardData(999L))
-                .isInstanceOf(CampaignException.class)
-                .hasFieldOrPropertyWithValue("errorMessage", ErrorMessage.STORE_NOT_FOUND);
         }
     }
 
@@ -479,12 +401,11 @@ class CampaignQueryServiceTest {
             // then
             assertThat(response).isNotNull();
             assertThat(response.getCurrentFeedbackCount()).isEqualTo(75L);
-            assertThat(response.getProgressRate()).isEqualTo(75.0);
             assertThat(response.getTargetFeedbackCount()).isEqualTo(100);
         }
 
         @Test
-        @DisplayName("목표를 초과한 캠페인의 진행률은 100%를 넘지 않는다")
+        @DisplayName("목표를 초과한 캠페인의 피드백 수를 조회한다")
         void getCampaignWithProgress_ExceedTarget() {
             // given
             given(campaignRepository.findById(1L)).willReturn(Optional.of(campaign));
@@ -497,7 +418,7 @@ class CampaignQueryServiceTest {
 
             // then
             assertThat(response.getCurrentFeedbackCount()).isEqualTo(150L);
-            assertThat(response.getProgressRate()).isEqualTo(100.0); // 100%를 넘지 않음
+            assertThat(response.getTargetFeedbackCount()).isEqualTo(100);
         }
     }
 }
