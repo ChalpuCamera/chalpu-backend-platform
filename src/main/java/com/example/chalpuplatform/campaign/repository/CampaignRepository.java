@@ -20,8 +20,8 @@ public interface CampaignRepository extends JpaRepository<Campaign, Long> {
     // 매장별 캠페인 조회
     Page<Campaign> findByStoreAndIsActiveTrue(Store store, Pageable pageable);
 
-    // 매장의 특정 상태 캠페인 조회
-    List<Campaign> findByStoreAndStatusAndIsActiveTrue(Store store, Campaign.CampaignStatus status);
+    // 매장의 특정 상태 캠페인 조회 (페이징)
+    Page<Campaign> findByStoreAndStatusAndIsActiveTrue(Store store, Campaign.CampaignStatus status, Pageable pageable);
 
     // 특정 음식의 활성 캠페인 조회
     @Query("SELECT c FROM Campaign c " +
