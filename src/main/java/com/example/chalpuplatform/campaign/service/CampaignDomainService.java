@@ -17,6 +17,8 @@ public class CampaignDomainService {
     private static final int MIN_TARGET_FEEDBACK_COUNT = 1;
     private static final int MAX_TARGET_FEEDBACK_COUNT = 100;
     private static final long DEFAULT_CAMPAIGN_ID = 0L;
+    private static final int MIN_TARGET_DAYS = 1;
+    private static final int MAX_TARGET_DAYS = 365;
 
     private final CampaignRepository campaignRepository;
 
@@ -87,6 +89,16 @@ public class CampaignDomainService {
 
         if (targetCount > MAX_TARGET_FEEDBACK_COUNT) {
             throw new IllegalArgumentException("목표 피드백 수는 " + MAX_TARGET_FEEDBACK_COUNT + "개를 초과할 수 없습니다");
+        }
+    }
+
+    public void validateTargetDays(Integer targetDays) {
+        if (targetDays == null || targetDays < MIN_TARGET_DAYS) {
+            throw new IllegalArgumentException("캠페인 기간은 " + MIN_TARGET_DAYS + "일 이상이어야 합니다");
+        }
+
+        if (targetDays > MAX_TARGET_DAYS) {
+            throw new IllegalArgumentException("캠페인 기간은 " + MAX_TARGET_DAYS + "일을 초과할 수 없습니다");
         }
     }
 }

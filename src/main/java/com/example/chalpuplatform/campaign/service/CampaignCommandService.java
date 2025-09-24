@@ -19,6 +19,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -63,7 +67,15 @@ public class CampaignCommandService {
 
         // 도메인 검증
         campaignDomainService.validateTargetFeedbackCount(request.getTargetFeedbackCount());
-        campaignDomainService.validateCampaignCreation(foodItem, request.getStartDate(), request.getEndDate());
+        campaignDomainService.validateTargetDays(request.getTargetDays());
+
+        // 한국 시간 기준으로 날짜 계산
+        ZonedDateTime koreanNow = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
+        LocalDateTime startDate = koreanNow.toLocalDate().atStartOfDay();
+        LocalDateTime endDate = startDate.plusDays(request.getTargetDays() - 1).withHour(23).withMinute(59).withSecond(59);
+
+        // 도메인 검증 (날짜 계산 후 검증)
+        campaignDomainService.validateCampaignCreation(foodItem, startDate, endDate);
 
         // 캠페인 생성
         Campaign campaign = Campaign.builder()
@@ -72,9 +84,9 @@ public class CampaignCommandService {
             .store(store)
             .foodItem(foodItem)
             .targetFeedbackCount(request.getTargetFeedbackCount())
-            .startDate(request.getStartDate())
-            .endDate(request.getEndDate())
-            .status(Campaign.CampaignStatus.DRAFT)
+            .startDate(startDate)
+            .endDate(endDate)
+            .status(Campaign.CampaignStatus.ACTIVE)
             .build();
 
         Campaign savedCampaign = campaignRepository.save(campaign);
@@ -102,15 +114,20 @@ public class CampaignCommandService {
 
         // 도메인 검증
         campaignDomainService.validateTargetFeedbackCount(request.getTargetFeedbackCount());
-        campaignDomainService.validateCampaignUpdate(campaign, request.getStartDate(), request.getEndDate());
+        campaignDomainService.validateTargetDays(request.getTargetDays());
+
+        // 새로운 종료일 계산
+        LocalDateTime newEndDate = campaign.getStartDate().plusDays(request.getTargetDays() - 1).withHour(23).withMinute(59).withSecond(59);
+
+        campaignDomainService.validateCampaignUpdate(campaign, campaign.getStartDate(), newEndDate);
 
         // 업데이트
         campaign.updateCampaign(
             request.getName(),
             request.getDescription(),
             request.getTargetFeedbackCount(),
-            request.getStartDate(),
-            request.getEndDate()
+            campaign.getStartDate(), // 시작일은 변경 불가
+            newEndDate
         );
 
         campaignRepository.save(campaign);

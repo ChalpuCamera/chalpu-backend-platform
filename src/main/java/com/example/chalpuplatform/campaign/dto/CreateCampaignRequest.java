@@ -7,8 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -40,12 +38,8 @@ public class CreateCampaignRequest {
     private Integer targetFeedbackCount;
 
     @NotNull
-    @FutureOrPresent
-    @Schema(description = "캠페인 시작일", example = "2024-01-01T00:00:00", required = true)
-    private LocalDateTime startDate;
-
-    @NotNull
-    @Future
-    @Schema(description = "캠페인 종료일", example = "2024-12-31T23:59:59", required = true)
-    private LocalDateTime endDate;
+    @Min(1)
+    @Max(365)
+    @Schema(description = "캠페인 진행 일수", example = "10", required = true)
+    private Integer targetDays;
 }
