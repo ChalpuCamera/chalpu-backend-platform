@@ -131,7 +131,7 @@ public interface CustomerFeedbackRepository extends JpaRepository<CustomerFeedba
 
     // 캠페인별 피드백 조회
     @EntityGraph("CustomerFeedback.detail")
-    Page<CustomerFeedback> findByCampaignIdAndIsActiveTrue(Long campaignId, Pageable pageable);
+    Page<CustomerFeedback> findByCampaignIdAndIsActiveTrueOrderByCreatedAtDesc(Long campaignId, Pageable pageable);
 
     // 캠페인별 일별 피드백 수 집계
     @Query("""
