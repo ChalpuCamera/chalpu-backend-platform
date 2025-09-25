@@ -5,16 +5,27 @@ import com.example.chalpuplatform.user.domain.User;
 import com.example.chalpuplatform.fooditem.domain.FoodItem;
 import com.example.chalpuplatform.store.domain.Store;
 import com.example.chalpuplatform.survey.domain.Survey;
+import com.example.chalpuplatform.campaign.domain.Campaign;
 import jakarta.persistence.*;
 import lombok.*;
 
+@NamedEntityGraph(
+    name = "CustomerFeedback.detail",
+    attributeNodes = {
+        @NamedAttributeNode("user"),
+        @NamedAttributeNode("store"),
+        @NamedAttributeNode("foodItem"),
+        @NamedAttributeNode("survey"),
+        @NamedAttributeNode("campaign")
+    }
+)
 @Entity
 @Table(name = "feedback")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
-@EqualsAndHashCode(callSuper = false)
 public class CustomerFeedback extends BaseTimeEntity {
 
     @Id
@@ -37,6 +48,10 @@ public class CustomerFeedback extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "survey_id", nullable = false)
     private Survey survey;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "campaign_id", nullable = true)
+    private Campaign campaign;
 
     @Builder.Default
     @Column(name = "is_active")
