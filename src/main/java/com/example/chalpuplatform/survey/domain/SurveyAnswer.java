@@ -5,13 +5,18 @@ import com.example.chalpuplatform.customerfeedback.domain.CustomerFeedback;
 import jakarta.persistence.*;
 import lombok.*;
 
+@NamedEntityGraph(
+    name = "SurveyAnswer.withQuestion",
+    attributeNodes = {
+        @NamedAttributeNode("question")
+    }
+)
 @Entity
 @Table(name = "survey_answers")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
-@EqualsAndHashCode(callSuper = false)
 public class SurveyAnswer extends BaseTimeEntity{
 
     @Id
