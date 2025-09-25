@@ -26,7 +26,7 @@ import java.util.Optional;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class UserStoreRoleService {
 
     private final UserStoreRoleRepository userStoreRoleRepository;

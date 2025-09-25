@@ -20,13 +20,14 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class StoreService {
 
     private final StoreRepository storeRepository;
     private final UserStoreRoleRepository userStoreRoleRepository;
     private final PhotoRepository photoRepository;
 
+    @Transactional(readOnly = true)
     public StoreResponse getStore(Long storeId) {
         try {
             Store store = storeRepository.findByIdAndIsActiveTrue(storeId)
@@ -38,7 +39,6 @@ public class StoreService {
         }
     }
 
-    @Transactional
     public StoreResponse createStore(StoreRequest storeRequest) {
         try {
             Store store = Store.createStore(storeRequest);
@@ -52,7 +52,6 @@ public class StoreService {
         }
     }
 
-    @Transactional
     public StoreResponse updateStore(Long storeId, StoreRequest storeRequest) {
         try {
             Store store = storeRepository.findByIdAndIsActiveTrue(storeId)
@@ -68,7 +67,6 @@ public class StoreService {
         }
     }
 
-    @Transactional
     public void deleteStore(Long storeId) {
         try {
             Store store = storeRepository.findByIdAndIsActiveTrue(storeId)

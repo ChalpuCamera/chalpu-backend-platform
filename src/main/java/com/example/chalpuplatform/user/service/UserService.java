@@ -16,13 +16,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class UserService {
 
     private final UserRepository userRepository;
     private final PhotoRepository photoRepository;
     private final UserStoreRoleRepository userStoreRoleRepository;
 
+    @Transactional(readOnly = true)
     public UserInfoDTO getCurrentUser(UserDetailsImpl currentUser) {
         User user = userRepository.findByIdAndDeletedAtIsNull(currentUser.getId())
                 .orElseThrow(() -> new UserException(ErrorMessage.USER_NOT_FOUND));
@@ -30,11 +31,13 @@ public class UserService {
         return UserInfoDTO.fromEntity(user);
     }
     
+    @Transactional(readOnly = true)
     public User getUserById(Long id) {
         return userRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new UserException(ErrorMessage.USER_NOT_FOUND));
     }
 
+    @Transactional(readOnly = true)
     public User getUserByEmail(String email) {
         return userRepository.findByEmailAndDeletedAtIsNull(email)
                 .orElseThrow(() -> new UserException(ErrorMessage.USER_INVALID_CREDENTIALS));
@@ -46,11 +49,11 @@ public class UserService {
      * @param email 확인할 이메일
      * @return 중복되지 않은 경우 true, 중복된 경우 false
      */
+    @Transactional(readOnly = true)
     public boolean isEmailAvailable(String email) {
         return !userRepository.existsByEmailAndDeletedAtIsNull(email);
     }
 
-    @Transactional
     public void softDelete(Long userId) {
         User user = userRepository.findByIdWithDeleted(userId)
                 .orElseThrow(() -> new UserException(ErrorMessage.USER_NOT_FOUND));
@@ -70,7 +73,6 @@ public class UserService {
         userRepository.save(user); // 변경된 상태를 DB에 반영
     }
 
-    @Transactional
     public void activateUser(Long userId) {
         User user = userRepository.findByIdWithDeleted(userId)
                 .orElseThrow(() -> new UserException(ErrorMessage.USER_NOT_FOUND));

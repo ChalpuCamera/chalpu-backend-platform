@@ -16,13 +16,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class UserProfileService {
     
     private final UserProfileRepository userProfileRepository;
     private final UserRepository userRepository;
     
-    @Transactional
     public CustomerTasteDto updateCustomerTaste(Long userId, CustomerTasteDto customerTasteDto) {
         customerTasteDto.validate();
         
@@ -40,7 +39,7 @@ public class UserProfileService {
         return CustomerTasteDto.from(customerTaste);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public CustomerTasteDto getCustomerTaste(Long userId) {
         UserProfile userProfile = userProfileRepository.findByUserId(userId)
                 .orElseGet(() -> createNewUserProfile(userId));
