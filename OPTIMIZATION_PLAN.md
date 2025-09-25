@@ -6,6 +6,121 @@
 
 ## 1. JPA 성능 최적화
 
+### 1.0 Campaign 엔티티 최적화 추가
+
+**현재 상황**
+- Campaign 엔티티가 Store, FoodItem과 Lazy Loading 관계
+- CampaignQueryService에서 여러 번 DB 호출 발생 가능
+- N+1 문제 발생 위험
+
+**개선 방안**
+
+#### Campaign 엔티티에 @NamedEntityGraph 추가
+```java
+@NamedEntityGraph(
+    name = "Campaign.withStoreAndFoodItem",
+    attributeNodes = {
+        @NamedAttributeNode("store"),
+        @NamedAttributeNode("foodItem")
+    }
+)
+@NamedEntityGraph(
+    name = "Campaign.detail",
+    attributeNodes = {
+        @NamedAttributeNode("store"),
+        @NamedAttributeNode("foodItem")
+    }
+)
+@Entity
+public class Campaign extends BaseTimeEntity {
+    // 기존 코드
+}
+```
+
+#### CampaignRepository에 EntityGraph 적용
+```java
+@Repository
+public interface CampaignRepository extends JpaRepository<Campaign, Long> {
+
+    // EntityGraph를 사용한 단건 조회
+    @EntityGraph("Campaign.withStoreAndFoodItem")
+    Optional<Campaign> findWithDetailsById(Long id);
+
+    // 페이징 조회시 EntityGraph 사용
+    @EntityGraph("Campaign.withStoreAndFoodItem")
+    Page<Campaign> findByStoreAndIsActiveTrue(Store store, Pageable pageable);
+
+    // 상태별 조회시 EntityGraph 사용
+    @EntityGraph("Campaign.withStoreAndFoodItem")
+    Page<Campaign> findByStoreAndStatusAndIsActiveTrue(Store store, CampaignStatus status, Pageable pageable);
+}
+```
+
+#### CustomerFeedback 엔티티 최적화
+```java
+@NamedEntityGraph(
+    name = "CustomerFeedback.detail",
+    attributeNodes = {
+        @NamedAttributeNode("user"),
+        @NamedAttributeNode("store"),
+        @NamedAttributeNode("foodItem"),
+        @NamedAttributeNode("survey")
+    }
+)
+@Entity
+public class CustomerFeedback extends BaseTimeEntity {
+    // 기존 코드
+}
+```
+
+### Entity Graph vs Fetch Join 선택 기준
+
+> [!tip]
+> **Entity Graph 사용이 적합한 경우**
+> - 동일한 fetch 전략을 여러 메서드에서 재사용
+> - 런타임에 동적으로 fetch 전략 변경 필요
+> - JPA 표준 기능만 사용하고 싶을 때
+> - 코드 재사용성과 유지보수성이 중요한 경우
+
+> [!warning]
+> **Fetch Join이 더 나은 경우**
+> - 복잡한 WHERE 조건절과 함께 사용
+> - 특정 쿼리에만 필요한 일회성 최적화
+> - 집계 함수나 GROUP BY와 함께 사용
+> - WHERE 절 필터링이 중요한 경우
+
+#### 성능 최적화 추가 사항
+
+**쿼리 최적화**
+```java
+// 배치 처리를 통한 최적화
+@Service
+public class CampaignQueryService {
+
+    // 캠페인 목록 조회시 피드백 카운트를 배치로 조회
+    public List<CampaignWithFeedbackCount> getCampaignsWithFeedbackCount(Long storeId) {
+        List<Campaign> campaigns = campaignRepository.findByStoreIdAndIsActiveTrue(storeId);
+
+        // 캠페인 ID 목록 추출
+        List<Long> campaignIds = campaigns.stream()
+            .map(Campaign::getId)
+            .collect(Collectors.toList());
+
+        // 한 번의 쿼리로 모든 피드백 카운트 조회
+        Map<Long, Long> feedbackCounts = customerFeedbackRepository
+            .countByFoodItemIdGroupByCampaignIds(campaignIds);
+
+        // 결과 조합
+        return campaigns.stream()
+            .map(campaign -> new CampaignWithFeedbackCount(
+                campaign,
+                feedbackCounts.getOrDefault(campaign.getId(), 0L)
+            ))
+            .collect(Collectors.toList());
+    }
+}
+```
+
 ### 1.1 Fetch Join을 @EntityGraph로 변경
 
 **현재 상황**
