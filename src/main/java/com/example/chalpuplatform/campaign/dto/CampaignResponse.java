@@ -39,10 +39,16 @@ public class CampaignResponse {
     @Schema(description = "음식명", example = "김치찌개")
     private String foodItemName;
 
+    @Schema(description = "음식 썸네일 이미지 URL", example = "https://s3.amazonaws.com/bucket/food-thumbnail.jpg")
+    private String foodItemThumbnailUrl;
+
     @Schema(description = "목표 피드백 수", example = "100")
     private Integer targetFeedbackCount;
 
-    @Schema(description = "캠페인 상태", example = "활성")
+    @Schema(description = "현재 피드백 수", example = "45")
+    private Integer currentFeedbackCount;
+
+    @Schema(description = "캠페인 상태", example = "ACTIVE")
     private String status;
 
     @Schema(description = "캠페인 진행 일수", example = "10")
@@ -75,8 +81,10 @@ public class CampaignResponse {
             .storeName(campaign.getStore().getStoreName())
             .foodItemId(campaign.getFoodItem().getId())
             .foodItemName(campaign.getFoodItem().getFoodName())
+            .foodItemThumbnailUrl(campaign.getFoodItem().getThumbnailUrl())
             .targetFeedbackCount(campaign.getTargetFeedbackCount())
-            .status(campaign.getStatus().getKorean())
+                .currentFeedbackCount(campaign.getCurrentFeedbackCount())
+            .status(campaign.getStatus().name())
             .targetDays(targetDays)
             .startDate(campaign.getStartDate())
             .endDate(campaign.getEndDate())
