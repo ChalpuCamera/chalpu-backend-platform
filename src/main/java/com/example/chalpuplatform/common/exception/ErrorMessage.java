@@ -106,6 +106,7 @@ public enum ErrorMessage {
     CAMPAIGN_CANNOT_MODIFY(BAD_REQUEST, "활성 또는 완료된 캠페인은 수정할 수 없습니다."),
     CAMPAIGN_OVERLAPPING(BAD_REQUEST, "해당 기간에 이미 진행 중인 캠페인이 있습니다."),
     CAMPAIGN_INVALID_DATE_RANGE(BAD_REQUEST, "잘못된 캠페인 기간입니다."),
+    CAMPAIGN_MISMATCH(BAD_REQUEST, "캠페인이 해당 매장 또는 음식과 일치하지 않습니다."),
     CAMPAIGN_TARGET_EXCEEDED(BAD_REQUEST, "목표 피드백 수가 제한을 초과했습니다."),
 
     // 알림 관련 에러

@@ -8,13 +8,19 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+@NamedEntityGraph(
+    name = "Campaign.withStoreAndFoodItem",
+    attributeNodes = {
+        @NamedAttributeNode("store"),
+        @NamedAttributeNode("foodItem")
+    }
+)
 @Entity
 @Table(name = "campaigns")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
-@EqualsAndHashCode(callSuper = false)
 public class Campaign extends BaseTimeEntity {
 
     @Id
@@ -38,6 +44,10 @@ public class Campaign extends BaseTimeEntity {
 
     @Column(name = "target_feedback_count", nullable = false)
     private Integer targetFeedbackCount;
+
+    @Column(name = "current_feedback_count", nullable = false)
+    @Builder.Default
+    private Integer currentFeedbackCount = 0;
 
     @Column(name = "start_date", nullable = false)
     private LocalDateTime startDate;

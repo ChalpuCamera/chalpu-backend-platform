@@ -18,14 +18,14 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public boolean validateRefreshToken(String tokenValue) {
         // 1. DB에 토큰이 존재하는지 확인
         Optional<RefreshToken> refreshTokenOpt = refreshTokenRepository.findByRefreshToken(tokenValue);
@@ -46,7 +46,7 @@ public class RefreshTokenService {
         return true;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public Optional<User> getUserByRefreshToken(String tokenValue) {
         return refreshTokenRepository.findByRefreshToken(tokenValue)
                 .flatMap(token -> userRepository.findById(token.getUserId()))

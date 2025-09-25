@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 @Slf4j
 public class CampaignQueryService {
 
@@ -36,22 +36,27 @@ public class CampaignQueryService {
     private final StoreRepository storeRepository;
     private final CampaignDomainService campaignDomainService;
 
-    @Transactional
     public CampaignDetailResponse getCampaignById(Long campaignId) {
         Campaign campaign = campaignRepository.findById(campaignId)
             .orElseThrow(() -> new CampaignException(ErrorMessage.CAMPAIGN_NOT_FOUND));
 
-        long currentFeedbackCount = getCurrentFeedbackCount(campaign);
+        // currentFeedbackCount 필드 직접 사용
+        long currentFeedbackCount = campaign.getCurrentFeedbackCount();
 
         // 목표 달성 시 자동 완료 처리 (조회 시에도 체크)
         if (campaignDomainService.shouldAutoComplete(campaign, currentFeedbackCount)) {
-            campaign.complete();
-            campaignRepository.save(campaign);
+            updateCampaignStatus(campaign);
         }
 
         return CampaignDetailResponse.from(campaign, currentFeedbackCount);
     }
 
+    protected void updateCampaignStatus(Campaign campaign) {
+        campaign.complete();
+        campaignRepository.save(campaign);
+    }
+
+    @Transactional(readOnly = true)
     public PageResponse<CampaignResponse> getCampaignsByStore(GetCampaignsByStoreRequest request, Pageable pageable) {
         Store store = storeRepository.findById(request.getStoreId())
             .orElseThrow(() -> new CampaignException(ErrorMessage.STORE_NOT_FOUND));
@@ -71,37 +76,51 @@ public class CampaignQueryService {
         return PageResponse.from(campaignResponses);
     }
 
+    @Transactional(readOnly = true)
     public CampaignDetailResponse getCampaignWithProgress(Long campaignId) {
         Campaign campaign = campaignRepository.findById(campaignId)
             .orElseThrow(() -> new CampaignException(ErrorMessage.CAMPAIGN_NOT_FOUND));
 
-        long currentFeedbackCount = getCurrentFeedbackCount(campaign);
+        // currentFeedbackCount 필드 직접 사용
+        long currentFeedbackCount = campaign.getCurrentFeedbackCount();
 
         return CampaignDetailResponse.from(campaign, currentFeedbackCount);
     }
 
+    @Transactional(readOnly = true)
     public CampaignStatisticsResponse getCampaignStatistics(Long campaignId) {
         Campaign campaign = campaignRepository.findById(campaignId)
             .orElseThrow(() -> new CampaignException(ErrorMessage.CAMPAIGN_NOT_FOUND));
 
-        // 현재 피드백 수
-        long totalFeedbackCount = getCurrentFeedbackCount(campaign);
+        // currentFeedbackCount 필드 직접 사용
+        long totalFeedbackCount = campaign.getCurrentFeedbackCount();
+        Double averageSatisfaction = getAverageSatisfaction(campaign);
+        List<CampaignStatisticsResponse.DailyFeedbackCount> dailyFeedbacks = getDailyFeedbackCounts(campaign);
 
-        // 평균 만족도
-        Double averageSatisfaction = customerFeedbackRepository.findAverageSatisfactionForCampaign(
-            campaign.getFoodItem(),
-            campaign.getStore(),
-            campaign.getStartDate(),
-            campaign.getEndDate()
-        );
+        // 남은 일수 계산
+        int daysRemaining = calculateDaysRemaining(campaign.getEndDate());
+        int totalDays = calculateTotalDays(campaign.getStartDate(), campaign.getEndDate());
 
-        // 일별 피드백 수
-        List<Object[]> dailyCounts = customerFeedbackRepository.findDailyFeedbackCounts(
-            campaign.getFoodItem(),
-            campaign.getStore(),
-            campaign.getStartDate(),
-            campaign.getEndDate()
-        );
+        return CampaignStatisticsResponse.builder()
+            .campaignId(campaign.getId())
+            .campaignName(campaign.getName())
+            .targetFeedbackCount(campaign.getTargetFeedbackCount())
+            .totalFeedbackCount(totalFeedbackCount)
+            .averageSatisfaction(averageSatisfaction)
+            .daysRemaining(daysRemaining)
+            .totalDays(totalDays)
+            .dailyFeedbacks(dailyFeedbacks)
+            .build();
+    }
+
+    private Double getAverageSatisfaction(Campaign campaign) {
+        // 캠페인 ID로 직접 조회하도록 변경
+        return customerFeedbackRepository.findAverageSatisfactionByCampaignId(campaign.getId());
+    }
+
+    private List<CampaignStatisticsResponse.DailyFeedbackCount> getDailyFeedbackCounts(Campaign campaign) {
+        // 캠페인 ID로 직접 조회하도록 변경
+        List<Object[]> dailyCounts = customerFeedbackRepository.findDailyFeedbackCountsByCampaignId(campaign.getId());
 
         List<CampaignStatisticsResponse.DailyFeedbackCount> dailyFeedbacks = new ArrayList<>();
         long cumulativeCount = 0;
@@ -120,33 +139,19 @@ public class CampaignQueryService {
             );
         }
 
-        // 남은 일수 계산
-        int daysRemaining = 0;
-        if (campaign.getEndDate().isAfter(LocalDateTime.now())) {
-            daysRemaining = (int) ChronoUnit.DAYS.between(LocalDateTime.now(), campaign.getEndDate());
+        return dailyFeedbacks;
+    }
+
+    private int calculateDaysRemaining(LocalDateTime endDate) {
+        if (endDate.isAfter(LocalDateTime.now())) {
+            return (int) ChronoUnit.DAYS.between(LocalDateTime.now(), endDate);
         }
+        return 0;
+    }
 
-        int totalDays = (int) ChronoUnit.DAYS.between(campaign.getStartDate(), campaign.getEndDate());
-
-        return CampaignStatisticsResponse.builder()
-            .campaignId(campaign.getId())
-            .campaignName(campaign.getName())
-            .targetFeedbackCount(campaign.getTargetFeedbackCount())
-            .totalFeedbackCount(totalFeedbackCount)
-            .averageSatisfaction(averageSatisfaction)
-            .daysRemaining(daysRemaining)
-            .totalDays(totalDays)
-            .dailyFeedbacks(dailyFeedbacks)
-            .build();
+    private int calculateTotalDays(LocalDateTime startDate, LocalDateTime endDate) {
+        return (int) ChronoUnit.DAYS.between(startDate, endDate);
     }
 
 
-    private long getCurrentFeedbackCount(Campaign campaign) {
-        return customerFeedbackRepository.countByFoodItemAndStoreBetweenDates(
-            campaign.getFoodItem(),
-            campaign.getStore(),
-            campaign.getStartDate(),
-            campaign.getEndDate()
-        );
-    }
 }

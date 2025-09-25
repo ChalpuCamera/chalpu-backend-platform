@@ -25,6 +25,9 @@ public class FeedbackCreateRequest {
     @Schema(description = "설문 ID", example = "1")
     private Long surveyId;
 
+    @Schema(description = "캠페인 ID (선택적)", example = "1", nullable = true)
+    private Long campaignId;
+
     @Schema(description = "설문 답변 목록")
     private List<SurveyAnswerRequest> surveyAnswers;
 

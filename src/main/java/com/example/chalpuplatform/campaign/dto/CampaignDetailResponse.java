@@ -39,11 +39,14 @@ public class CampaignDetailResponse {
     @Schema(description = "음식명", example = "김치찌개")
     private String foodItemName;
 
+    @Schema(description = "음식 썸네일 이미지 URL", example = "https://s3.amazonaws.com/bucket/food-thumbnail.jpg")
+    private String foodItemThumbnailUrl;
+
     @Schema(description = "목표 피드백 수", example = "100")
     private Integer targetFeedbackCount;
 
     @Schema(description = "현재 피드백 수", example = "45")
-    private Long currentFeedbackCount;
+    private Integer currentFeedbackCount;
 
     @Schema(description = "캠페인 상태", example = "활성")
     private String status;
@@ -62,7 +65,7 @@ public class CampaignDetailResponse {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endDate;
 
-    public static CampaignDetailResponse from(Campaign campaign, long currentFeedbackCount) {
+    public static CampaignDetailResponse from(Campaign campaign, Integer currentFeedbackCount) {
         int targetDays = (int) ChronoUnit.DAYS.between(campaign.getStartDate(), campaign.getEndDate()) + 1;
 
         return CampaignDetailResponse.builder()
@@ -73,9 +76,10 @@ public class CampaignDetailResponse {
             .storeName(campaign.getStore().getStoreName())
             .foodItemId(campaign.getFoodItem().getId())
             .foodItemName(campaign.getFoodItem().getFoodName())
+            .foodItemThumbnailUrl(campaign.getFoodItem().getThumbnailUrl())
             .targetFeedbackCount(campaign.getTargetFeedbackCount())
             .currentFeedbackCount(currentFeedbackCount)
-            .status(campaign.getStatus().getKorean())
+            .status(campaign.getStatus().name())
             .isActive(campaign.isActive())
             .targetDays(targetDays)
             .startDate(campaign.getStartDate())

@@ -5,6 +5,7 @@ import com.example.chalpuplatform.fooditem.domain.FoodItem;
 import com.example.chalpuplatform.store.domain.Store;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,10 +17,13 @@ import java.util.List;
 @Repository
 public interface CustomerFeedbackRepository extends JpaRepository<CustomerFeedback, Long> {
     
+    @EntityGraph("CustomerFeedback.detail")
     Page<CustomerFeedback> findByUserIdAndIsActiveTrueOrderByCreatedAtDesc(Long userId, Pageable pageable);
-    
+
+    @EntityGraph("CustomerFeedback.detail")
     Page<CustomerFeedback> findByStoreIdAndIsActiveTrueOrderByCreatedAtDesc(Long storeId, Pageable pageable);
 
+    @EntityGraph("CustomerFeedback.detail")
     Page<CustomerFeedback> findByFoodItemIdAndIsActiveTrueOrderByCreatedAtDesc(Long foodItemId, Pageable pageable);
 
     // 매장의 모든 음식별 읽지 않은 피드백 개수 조회
@@ -43,38 +47,30 @@ public interface CustomerFeedbackRepository extends JpaRepository<CustomerFeedba
     """)
     CustomerFeedback findByIdWithUserProfile(@Param("feedbackId") Long feedbackId);
 
-    // 매장 피드백 조회 시 연관 엔티티 페치 조인
+    // 매장 피드백 조회 시 연관 엔티티 포함
+    @EntityGraph("CustomerFeedback.detail")
     @Query("""
         SELECT cf FROM CustomerFeedback cf
-        LEFT JOIN FETCH cf.foodItem
-        LEFT JOIN FETCH cf.store
-        LEFT JOIN FETCH cf.user
-        LEFT JOIN FETCH cf.survey
         WHERE cf.store.id = :storeId
         AND cf.isActive = true
         ORDER BY cf.createdAt DESC
     """)
     Page<CustomerFeedback> findByStoreIdWithDetails(@Param("storeId") Long storeId, Pageable pageable);
 
-    // 사용자 피드백 조회 시 연관 엔티티 페치 조인
+    // 사용자 피드백 조회 시 연관 엔티티 포함
+    @EntityGraph("CustomerFeedback.detail")
     @Query("""
         SELECT cf FROM CustomerFeedback cf
-        LEFT JOIN FETCH cf.foodItem
-        LEFT JOIN FETCH cf.store
-        LEFT JOIN FETCH cf.survey
         WHERE cf.user.id = :userId
         AND cf.isActive = true
         ORDER BY cf.createdAt DESC
     """)
     Page<CustomerFeedback> findByUserIdWithDetails(@Param("userId") Long userId, Pageable pageable);
 
-    // 음식별 피드백 조회 시 연관 엔티티 페치 조인
+    // 음식별 피드백 조회 시 연관 엔티티 포함
+    @EntityGraph("CustomerFeedback.detail")
     @Query("""
         SELECT cf FROM CustomerFeedback cf
-        LEFT JOIN FETCH cf.foodItem
-        LEFT JOIN FETCH cf.store
-        LEFT JOIN FETCH cf.user u
-        LEFT JOIN FETCH cf.survey
         WHERE cf.foodItem.id = :foodItemId
         AND cf.isActive = true
         ORDER BY cf.createdAt DESC
@@ -129,4 +125,31 @@ public interface CustomerFeedbackRepository extends JpaRepository<CustomerFeedba
         @Param("startDate") LocalDateTime startDate,
         @Param("endDate") LocalDateTime endDate
     );
+
+    // 캠페인별 피드백 수 조회
+    long countByCampaignIdAndIsActiveTrue(Long campaignId);
+
+    // 캠페인별 피드백 조회
+    @EntityGraph("CustomerFeedback.detail")
+    Page<CustomerFeedback> findByCampaignIdAndIsActiveTrueOrderByCreatedAtDesc(Long campaignId, Pageable pageable);
+
+    // 캠페인별 일별 피드백 수 집계
+    @Query("""
+        SELECT DATE(cf.createdAt) as date, COUNT(cf) as count
+        FROM CustomerFeedback cf
+        WHERE cf.campaign.id = :campaignId
+        AND cf.isActive = true
+        GROUP BY DATE(cf.createdAt)
+        ORDER BY date
+    """)
+    List<Object[]> findDailyFeedbackCountsByCampaignId(@Param("campaignId") Long campaignId);
+
+    // 캠페인별 평균 만족도 조회
+    @Query("""
+        SELECT AVG(cf.overallSatisfaction) FROM CustomerFeedback cf
+        WHERE cf.campaign.id = :campaignId
+        AND cf.isActive = true
+        AND cf.overallSatisfaction IS NOT NULL
+    """)
+    Double findAverageSatisfactionByCampaignId(@Param("campaignId") Long campaignId);
 }

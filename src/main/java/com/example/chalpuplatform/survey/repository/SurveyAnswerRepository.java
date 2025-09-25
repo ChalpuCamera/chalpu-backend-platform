@@ -2,6 +2,7 @@ package com.example.chalpuplatform.survey.repository;
 
 import com.example.chalpuplatform.jar.domain.JARDataPoint;
 import com.example.chalpuplatform.survey.domain.SurveyAnswer;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -68,9 +69,9 @@ public interface SurveyAnswerRepository extends JpaRepository<SurveyAnswer, Long
                                          @Param("endDate") LocalDateTime endDate);
 
     // 배치 조회 - question 포함
+    @EntityGraph("SurveyAnswer.withQuestion")
     @Query("""
         SELECT sa FROM SurveyAnswer sa
-        JOIN FETCH sa.question
         WHERE sa.feedback.id IN :feedbackIds
         ORDER BY sa.feedback.id, sa.question.id
     """)
@@ -86,9 +87,9 @@ public interface SurveyAnswerRepository extends JpaRepository<SurveyAnswer, Long
     List<Object[]> findOwnerMessagesByFeedbackIds(@Param("feedbackIds") List<Long> feedbackIds);
 
     // 고객용 - 전체 답변 조회 (question 포함)
+    @EntityGraph("SurveyAnswer.withQuestion")
     @Query("""
         SELECT sa FROM SurveyAnswer sa
-        JOIN FETCH sa.question
         WHERE sa.feedback.id = :feedbackId
         ORDER BY sa.question.id
     """)
