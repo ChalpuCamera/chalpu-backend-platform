@@ -41,7 +41,7 @@ public class CampaignQueryService {
             .orElseThrow(() -> new CampaignException(ErrorMessage.CAMPAIGN_NOT_FOUND));
 
         // currentFeedbackCount 필드 직접 사용
-        long currentFeedbackCount = campaign.getCurrentFeedbackCount();
+        Integer currentFeedbackCount = campaign.getCurrentFeedbackCount();
 
         // 목표 달성 시 자동 완료 처리 (조회 시에도 체크)
         if (campaignDomainService.shouldAutoComplete(campaign, currentFeedbackCount)) {
@@ -82,7 +82,7 @@ public class CampaignQueryService {
             .orElseThrow(() -> new CampaignException(ErrorMessage.CAMPAIGN_NOT_FOUND));
 
         // currentFeedbackCount 필드 직접 사용
-        long currentFeedbackCount = campaign.getCurrentFeedbackCount();
+        Integer currentFeedbackCount = campaign.getCurrentFeedbackCount();
 
         return CampaignDetailResponse.from(campaign, currentFeedbackCount);
     }
