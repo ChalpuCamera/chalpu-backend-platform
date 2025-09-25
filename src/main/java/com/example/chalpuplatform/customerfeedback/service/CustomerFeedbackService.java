@@ -21,6 +21,7 @@ import com.example.chalpuplatform.common.exception.ErrorMessage;
 import com.example.chalpuplatform.common.exception.UserException;
 import com.example.chalpuplatform.common.exception.FeedbackException;
 import com.example.chalpuplatform.common.exception.SurveyException;
+import com.example.chalpuplatform.common.exception.CampaignException;
 import com.example.chalpuplatform.fooditem.domain.FoodItem;
 import com.example.chalpuplatform.fooditem.repository.FoodItemRepository;
 import com.example.chalpuplatform.store.domain.Store;
@@ -28,6 +29,8 @@ import com.example.chalpuplatform.store.repository.StoreRepository;
 import com.example.chalpuplatform.store.service.UserStoreRoleService;
 import com.example.chalpuplatform.user.domain.CustomerTaste;
 import com.example.chalpuplatform.oauth.jwt.UserDetailsImpl;
+import com.example.chalpuplatform.campaign.domain.Campaign;
+import com.example.chalpuplatform.campaign.repository.CampaignRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,7 +49,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.Optional;
 import java.util.Collections;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -68,6 +70,7 @@ public class CustomerFeedbackService {
     private final SurveyQuestionRepository questionRepository;
     private final S3Presigner s3Presigner;
     private final UserStoreRoleService userStoreRoleService;
+    private final CampaignRepository campaignRepository;
     
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -85,8 +88,28 @@ public class CustomerFeedbackService {
         Survey survey = surveyRepository.findById(request.getSurveyId())
                 .orElseThrow(() -> new SurveyException(ErrorMessage.SURVEY_NOT_FOUND));
 
-        CustomerFeedback feedback = CustomerFeedback.createFeedback(foodItem, store, user, survey);
-        feedback.setIsViewed(false); // 새 피드백은 읽지 않은 상태로 설정
+        // 캠페인 처리: 직접 ID로 받거나 활성 캠페인 자동 검색
+        Campaign campaign = null;
+        if (request.getCampaignId() != null) {
+            // 캠페인 ID가 명시적으로 제공된 경우
+            campaign = campaignRepository.findById(request.getCampaignId())
+                    .orElseThrow(() -> new CampaignException(ErrorMessage.CAMPAIGN_NOT_FOUND));
+
+            // 캠페인이 해당 매장/음식과 일치하는지 검증
+            if (!campaign.getStore().getId().equals(store.getId()) || !campaign.getFoodItem().getId().equals(foodItem.getId())) {
+                throw new CampaignException(ErrorMessage.CAMPAIGN_MISMATCH);
+            }
+        }
+        // 캠페인 ID가 없으면 그냥 null로 처리
+
+        CustomerFeedback feedback = CustomerFeedback.builder()
+                .foodItem(foodItem)
+                .store(store)
+                .user(user)
+                .survey(survey)
+                .campaign(campaign)  // 캠페인 연결
+                .isViewed(false)  // 새 피드백은 읽지 않은 상태로 설정
+                .build();
 
         // 현재 고객 입맛을 스냅샷으로 저장
         userProfileRepository.findByUserId(user.getId()).ifPresent(userProfile -> {
@@ -99,6 +122,13 @@ public class CustomerFeedbackService {
         });
 
         CustomerFeedback savedFeedback = feedbackRepository.save(feedback);
+
+        // 캠페인 연결 시 카운트 원자적 증가
+        if (campaign != null) {
+            campaignRepository.incrementFeedbackCount(campaign.getId());
+            log.info("캠페인 피드백 카운트 증가: campaignId={}, feedbackId={}",
+                    campaign.getId(), savedFeedback.getId());
+        }
 
         saveSurveyAnswers(savedFeedback, request.getSurveyAnswers());
 
