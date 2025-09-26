@@ -3,7 +3,11 @@ spring:
     import: aws-parameterstore:/chalpu-platform/dev/
     activate:
       on-profile: dev
-      
+
+  web:
+    resources:
+      add-mappings: false
+
   servlet:
     multipart:
       max-file-size: 10MB
