@@ -6,6 +6,7 @@ import com.example.chalpuplatform.jar.service.JARAnalysisApplicationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -22,6 +23,7 @@ public class JARAnalysisController {
      * 단일 질문 JAR 분석
      */
     @GetMapping("/questions/{questionId}/analysis")
+    @PreAuthorize("hasRole('OWNER')")
     public ApiResponse<SingleJARResponse> analyzeQuestion(
             @PathVariable("questionId") Long questionId) {
         log.info("event=jar_analysis_requested, question_id={}", questionId);
@@ -34,6 +36,7 @@ public class JARAnalysisController {
      * 특정 음식 JAR 분석
      */
     @GetMapping("/foods/{foodId}/analysis")
+    @PreAuthorize("hasRole('OWNER')")
     public ApiResponse<JARAnalysisResponse> analyzeFoodItem(
             @PathVariable("foodId") Long foodId,
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,

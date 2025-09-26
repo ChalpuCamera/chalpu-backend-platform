@@ -108,6 +108,7 @@ public class CustomerFeedbackController {
         summary = "사장님이 매장별 피드백(리뷰) 목록 조회하는 API",
         description = "특정 매장에 대한 모든 고객 피드백을 페이징으로 조회합니다. 매장 사장이 고객 반응을 확인할 때 사용합니다. 기본 20개씩 최신 순으로 정렬됩니다."
     )
+    @PreAuthorize("hasRole('OWNER')")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
@@ -137,6 +138,7 @@ public class CustomerFeedbackController {
         summary = "사장님이 음식별 피드백(리뷰) 목록 조회하는 API",
         description = "특정 음식에 대한 모든 고객 피드백을 페이징으로 조회합니다. 매장 사장이 특정 음식에 대한 고객 반응을 확인할 때 사용합니다. 기본 20개씩 최신 순으로 정렬됩니다."
     )
+    @PreAuthorize("hasRole('OWNER')")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",

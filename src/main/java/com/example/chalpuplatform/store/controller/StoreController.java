@@ -117,6 +117,7 @@ public class StoreController {
 
     @DeleteMapping("/{storeId}")
     @Operation(summary = "매장 삭제", description = "매장을 삭제합니다. 소유자만 삭제할 수 있습니다.")
+    @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<ApiResponse<Void>> deleteStore(
             @PathVariable Long storeId,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
@@ -132,6 +133,7 @@ public class StoreController {
 
     @GetMapping("/{storeId}/members")
     @Operation(summary = "매장 멤버 목록 조회", description = "매장에 속한 멤버 목록을 조회합니다.")
+    @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<ApiResponse<List<MemberResponse>>> getStoreMembers(
             @PathVariable Long storeId,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
@@ -142,6 +144,7 @@ public class StoreController {
 
     @PostMapping("/{storeId}/members")
     @Operation(summary = "매장 멤버 초대", description = "매장에 새로운 멤버를 초대합니다.")
+    @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<ApiResponse<MemberResponse>> inviteMember(
             @PathVariable Long storeId,
             @RequestBody MemberInviteRequest memberRequest,

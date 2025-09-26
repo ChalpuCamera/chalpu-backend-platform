@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,6 +46,7 @@ public class RewardController {
             )
         )
     })
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<List<RewardResponse>>> getAllRewards() {
         List<RewardResponse> responses = rewardService.getAvailableRewards();
         return ResponseEntity.ok(ApiResponse.success(responses));
@@ -68,6 +70,7 @@ public class RewardController {
         ),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증이 필요합니다")
     })
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<List<RewardResponse>>> getMyAvailableRewards(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
         
@@ -96,6 +99,7 @@ public class RewardController {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증이 필요합니다"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "리워드를 찾을 수 없습니다")
     })
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<RewardRedemptionResponse>> redeemReward(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -133,6 +137,7 @@ public class RewardController {
         ),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증이 필요합니다")
     })
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<List<RewardRedemptionResponse>>> getMyRedemptions(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
         
@@ -158,6 +163,7 @@ public class RewardController {
         ),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증이 필요합니다")
     })
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<List<RewardRedemptionResponse>>> getMyActiveRedemptions(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
         
@@ -184,6 +190,7 @@ public class RewardController {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 요청 (이미 사용된 리워드, 만료된 리워드 등)"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "리워드 교환 내역을 찾을 수 없습니다")
     })
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<Void>> markRedemptionAsUsed(
             @Parameter(description = "교환 ID", example = "1")
             @PathVariable("redemptionId") Long redemptionId) {
@@ -211,6 +218,7 @@ public class RewardController {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 요청 (사용되지 않은 리워드, 만료된 리워드 등)"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "리워드 교환 내역을 찾을 수 없습니다")
     })
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<Void>> cancelRedemption(
             @Parameter(description = "교환 ID", example = "1")
             @PathVariable("redemptionId") Long redemptionId) {
@@ -237,6 +245,7 @@ public class RewardController {
         ),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증이 필요합니다")
     })
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<Boolean>> checkMyRewardEligibility(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
         
