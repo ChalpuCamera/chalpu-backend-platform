@@ -9,9 +9,12 @@ import io.swagger.v3.oas.annotations.info.License;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.servers.Server;
+import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.client.RestTemplate;
+import java.lang.reflect.Method;
 
 @Configuration
 @OpenAPIDefinition(
@@ -48,11 +51,47 @@ import org.springframework.web.client.RestTemplate;
     in = SecuritySchemeIn.HEADER
 )
 public class OpenApiConfig {
-    
+
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
 
-    // 필요한 경우 추가 설정을 여기에 구현
+    @Bean
+    public GroupedOpenApi ownerApi() {
+        return GroupedOpenApi.builder()
+            .group("1. 사장님 API")
+            .pathsToMatch("/api/**")
+            .packagesToScan("com.example.chalpuplatform")
+            .addOpenApiMethodFilter(method -> hasRole(method, "OWNER"))
+            .build();
+    }
+
+    @Bean
+    public GroupedOpenApi customerApi() {
+        return GroupedOpenApi.builder()
+            .group("2. 손님 API")
+            .pathsToMatch("/api/**")
+            .packagesToScan("com.example.chalpuplatform")
+            .addOpenApiMethodFilter(method -> hasRole(method, "CUSTOMER"))
+            .build();
+    }
+
+    @Bean
+    public GroupedOpenApi commonApi() {
+        return GroupedOpenApi.builder()
+            .group("3. 공통 API")
+            .pathsToMatch("/api/**")
+            .packagesToScan("com.example.chalpuplatform")
+            .addOpenApiMethodFilter(method -> !method.isAnnotationPresent(PreAuthorize.class))
+            .build();
+    }
+
+    private boolean hasRole(Method method, String role) {
+        if (method.isAnnotationPresent(PreAuthorize.class)) {
+            PreAuthorize preAuthorize = method.getAnnotation(PreAuthorize.class);
+            return preAuthorize.value().contains(role);
+        }
+        return false;
+    }
 }

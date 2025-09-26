@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,6 +39,7 @@ public class FoodItemController {
         description = "특정 매장의 음식 목록을 페이지네이션하여 조회합니다.",
         security = { @SecurityRequirement(name = "bearerAuth") }
     )
+    @PreAuthorize("hasRole('OWNER')")
     public ApiResponse<PageResponse<FoodItemResponse>> getFoodItems(
             @PathVariable @Parameter(description = "매장 ID") Long storeId,
             @PageableDefault(size = 20) Pageable pageable) {
@@ -62,6 +64,7 @@ public class FoodItemController {
         description = "새로운 음식을 생성합니다.",
         security = { @SecurityRequirement(name = "bearerAuth") }
     )
+    @PreAuthorize("hasRole('OWNER')")
     public ApiResponse<FoodItemResponse> createFoodItem(
             @PathVariable @Parameter(description = "매장 ID") Long storeId,
             @RequestBody FoodItemRequest request,
@@ -76,6 +79,7 @@ public class FoodItemController {
         description = "기존 음식 정보를 수정합니다.",
         security = { @SecurityRequirement(name = "bearerAuth") }
     )
+    @PreAuthorize("hasRole('OWNER')")
     public ApiResponse<FoodItemResponse> updateFoodItem(
             @PathVariable @Parameter(description = "음식 ID") Long foodId,
             @RequestBody FoodItemRequest request,
@@ -90,6 +94,7 @@ public class FoodItemController {
         description = "음식을 삭제합니다 (소프트 딜리트).",
         security = { @SecurityRequirement(name = "bearerAuth") }
     )
+    @PreAuthorize("hasRole('OWNER')")
     public ApiResponse<Void> deleteFoodItem(
             @PathVariable @Parameter(description = "음식 ID") Long foodId,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
@@ -103,6 +108,7 @@ public class FoodItemController {
         description = "메뉴판 이미지를 업로드하여 AI로 메뉴 정보를 추출하고 FoodItem으로 저장합니다.",
         security = { @SecurityRequirement(name = "bearerAuth") }
     )
+    @PreAuthorize("hasRole('OWNER')")
     public ApiResponse<FoodItemExtractionStartResponse> startMenuExtraction(
             @RequestPart("image") MultipartFile image,
             @RequestParam("storeId") Long storeId,
@@ -122,6 +128,7 @@ public class FoodItemController {
         description = "메뉴 추출 작업의 진행 상태를 조회합니다 (Polling용)",
         security = { @SecurityRequirement(name = "bearerAuth") }
     )
+    @PreAuthorize("hasRole('OWNER')")
     public ApiResponse<FoodItemExtractionStatusResponse> getExtractionStatus(
             @PathVariable("requestId") String requestId,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
@@ -137,6 +144,7 @@ public class FoodItemController {
         description = "특정 음식의 대표 사진 URL을 설정합니다.",
         security = { @SecurityRequirement(name = "bearerAuth") }
     )
+    @PreAuthorize("hasRole('OWNER')")
     public ApiResponse<FoodItemResponse> updateThumbnail(
             @PathVariable("foodId") @Parameter(description = "음식 ID") Long foodId,
             @RequestParam("photoUrl") @Parameter(description = "대표 사진 URL") String photoUrl,

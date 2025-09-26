@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,6 +33,7 @@ public class CampaignController {
     // Command operations
     @PostMapping
     @Operation(summary = "캠페인 생성", description = "새로운 캠페인을 생성합니다")
+    @PreAuthorize("hasRole('OWNER')")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "캠페인 생성 성공"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 요청"),
@@ -49,6 +51,7 @@ public class CampaignController {
 
     @PutMapping
     @Operation(summary = "캠페인 수정", description = "기존 캠페인 정보를 수정합니다")
+    @PreAuthorize("hasRole('OWNER')")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "캠페인 수정 성공"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 요청"),
@@ -65,6 +68,7 @@ public class CampaignController {
 
     @DeleteMapping
     @Operation(summary = "캠페인 삭제", description = "캠페인을 소프트 삭제합니다")
+    @PreAuthorize("hasRole('OWNER')")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "캠페인 삭제 성공"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "활성 상태 캠페인은 삭제 불가"),
@@ -81,6 +85,7 @@ public class CampaignController {
 
     @PatchMapping("/status")
     @Operation(summary = "캠페인 상태 변경", description = "캠페인의 상태를 변경합니다")
+    @PreAuthorize("hasRole('OWNER')")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "캠페인 상태 변경 성공"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "유효하지 않은 상태"),
@@ -111,6 +116,7 @@ public class CampaignController {
 
     @PostMapping("/store/list")
     @Operation(summary = "매장별 캠페인 목록 조회", description = "특정 매장의 캠페인 목록을 페이징하여 조회합니다. 상태로 필터링 가능")
+    @PreAuthorize("hasRole('OWNER')")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "캠페인 목록 조회 성공"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "매장을 찾을 수 없음")
