@@ -14,6 +14,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -204,6 +205,21 @@ public class GlobalExceptionHandler {
         logger.error("Method Not Supported: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(ApiResponse.error(HttpStatus.METHOD_NOT_ALLOWED.value(), "지원하지 않는 HTTP 메소드입니다."));
+    }
+
+    /**
+     * NoResourceFoundException 처리 (favicon.ico 등 정적 리소스 찾을 수 없을 때)
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNoResourceFoundException(NoResourceFoundException ex) {
+        // favicon.ico 요청은 디버그 레벨로 로그 처리
+        if (ex.getResourcePath().contains("favicon")) {
+            logger.debug("Favicon not found: {}", ex.getResourcePath());
+        } else {
+            logger.debug("Resource not found: {}", ex.getResourcePath());
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(HttpStatus.NOT_FOUND.value(), "요청한 리소스를 찾을 수 없습니다."));
     }
     
     /**
