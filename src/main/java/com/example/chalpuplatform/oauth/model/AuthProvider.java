@@ -4,7 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "인증 제공자 유형")
 public enum AuthProvider {
-    @Schema(description = "Kakao 로그인") KAKAO;
+    @Schema(description = "Kakao 로그인") KAKAO,
+    @Schema(description = "Google 로그인") GOOGLE;
     /**
      * 문자열로부터 AuthProvider를 반환합니다.
      * @param value 인증 제공자 문자열 (대소문자 무관)

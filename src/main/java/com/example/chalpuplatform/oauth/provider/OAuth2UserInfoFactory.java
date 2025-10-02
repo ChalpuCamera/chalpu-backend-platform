@@ -12,6 +12,8 @@ public class OAuth2UserInfoFactory {
         switch (authProvider) {
             case KAKAO:
                 return new KakaoOAuth2UserInfo(attributes);
+            case GOOGLE:
+                return new GoogleOAuth2UserInfo(attributes);
             default:
                 throw new OAuthException(ErrorMessage.OAUTH_PROVIDER_NOT_SUPPORTED);
         }

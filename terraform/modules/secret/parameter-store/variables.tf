@@ -61,6 +61,17 @@ variable "kakao_client_secret" {
   sensitive   = true
 }
 
+variable "google_client_id" {
+  description = "Google OAuth client ID"
+  type        = string
+}
+
+variable "google_client_secret" {
+  description = "Google OAuth client secret"
+  type        = string
+  sensitive   = true
+}
+
 variable "oauth2_redirect_success_path" {
   description = "OAuth2 redirect success path"
   type        = string
