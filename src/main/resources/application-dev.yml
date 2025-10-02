@@ -35,7 +35,7 @@ spring:
       client:
         registration:
           kakao:
-            client-id: ${kakao-client-id} # 웹용 클라이언트 ID
+            client-id: ${kakao-client-id}
             client-secret: ${kakao-client-secret}
             redirect-uri: "https://platform.chalpu.com/api/login/oauth2/code/kakao"
             authorization-grant-type: authorization_code
@@ -43,12 +43,25 @@ spring:
             scope:
               - profile_nickname
               - account_email
+          google:
+            client-id: ${google-client-id}
+            client-secret: ${google-client-secret}
+            redirect-uri: "https://platform.chalpu.com/api/login/oauth2/code/google"
+            authorization-grant-type: authorization_code
+            scope:
+              - profile
+              - email
         provider:
           kakao:
             authorization-uri: https://kauth.kakao.com/oauth/authorize
             token-uri: https://kauth.kakao.com/oauth/token
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
 
 jwt:
   secret: ${jwt-secret}
