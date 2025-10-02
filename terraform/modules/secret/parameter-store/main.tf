@@ -122,6 +122,31 @@ resource "aws_ssm_parameter" "kakao_client_secret" {
   }
 }
 
+# OAuth Google Configuration
+resource "aws_ssm_parameter" "google_client_id" {
+  name        = "/chalpu-platform/${var.environment}/google-client-id"
+  description = "Google OAuth client ID"
+  type        = "String"
+  value       = var.google_client_id
+
+  tags = {
+    Name        = "chalpu-${var.environment}-google-client-id"
+    Environment = var.environment
+  }
+}
+
+resource "aws_ssm_parameter" "google_client_secret" {
+  name        = "/chalpu-platform/${var.environment}/google-client-secret"
+  description = "Google OAuth client secret"
+  type        = "SecureString"
+  value       = var.google_client_secret
+
+  tags = {
+    Name        = "chalpu-${var.environment}-google-client-secret"
+    Environment = var.environment
+  }
+}
+
 # OAuth2 Redirect Configuration
 resource "aws_ssm_parameter" "oauth2_redirect_success_path" {
   name        = "/chalpu-platform/${var.environment}/oauth2-redirect-success-path"
