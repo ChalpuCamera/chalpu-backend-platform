@@ -48,6 +48,8 @@ module "parameter_store" {
   aws_secret_key             = var.aws_secret_key
   kakao_client_id           = var.kakao_client_id
   kakao_client_secret       = var.kakao_client_secret
+  google_client_id          = var.google_client_id
+  google_client_secret      = var.google_client_secret
   oauth2_redirect_success_path = var.oauth2_redirect_success_path
   oauth2_redirect_failure_path = var.oauth2_redirect_failure_path
   oauth2_owner_domain       = var.oauth2_owner_domain
