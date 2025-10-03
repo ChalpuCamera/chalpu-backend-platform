@@ -183,4 +183,8 @@ public class FoodItemService {
             throw new FoodException(ErrorMessage.STORE_ACCESS_DENIED);
         }
     }
-} 
+
+    public PageResponse<FoodItemResponse> getAllFoodItems() {
+        return null;
+    }
+}

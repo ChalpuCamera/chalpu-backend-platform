@@ -36,10 +36,8 @@ public class FoodItemController {
     @GetMapping("/store/{storeId}")
     @Operation(
         summary = "매장별 음식 목록 조회",
-        description = "특정 매장의 음식 목록을 페이지네이션하여 조회합니다.",
-        security = { @SecurityRequirement(name = "bearerAuth") }
+        description = "특정 매장의 음식 목록을 페이지네이션하여 조회합니다."
     )
-    @PreAuthorize("hasRole('OWNER')")
     public ApiResponse<PageResponse<FoodItemResponse>> getFoodItems(
             @PathVariable @Parameter(description = "매장 ID") Long storeId,
             @PageableDefault(size = 20) Pageable pageable) {
