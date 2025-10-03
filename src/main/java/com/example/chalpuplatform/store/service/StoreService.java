@@ -2,6 +2,7 @@ package com.example.chalpuplatform.store.service;
 
 import com.example.chalpuplatform.common.exception.ErrorMessage;
 import com.example.chalpuplatform.common.exception.StoreException;
+import com.example.chalpuplatform.common.response.PageResponse;
 import com.example.chalpuplatform.fooditem.domain.FoodItem;
 import com.example.chalpuplatform.photo.repository.PhotoRepository;
 import com.example.chalpuplatform.store.domain.Store;
@@ -12,6 +13,7 @@ import com.example.chalpuplatform.store.repository.StoreRepository;
 import com.example.chalpuplatform.store.repository.UserStoreRoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -100,4 +102,10 @@ public class StoreService {
             throw new StoreException(ErrorMessage.STORE_DELETE_FAILED);
         }
     }
-} 
+
+    public PageResponse<StoreResponse> getAllStores(Pageable pageable) {
+        return PageResponse.from(
+                storeRepository.findByIsActiveTrue(pageable).map(StoreResponse::from)
+        );
+    }
+}

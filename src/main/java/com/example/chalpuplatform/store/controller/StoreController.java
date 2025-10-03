@@ -153,4 +153,13 @@ public class StoreController {
         MemberResponse member = userStoreRoleService.inviteMember(storeId, memberRequest, userDetails.getId());
         return ResponseEntity.ok(ApiResponse.success(member));
     }
+
+    @GetMapping("/all")
+    @Operation(summary = "전체 매장 매장 목록 조회", description = "전체 매장 목록을 페이지네이션으로 조회합니다.")
+    public ResponseEntity<ApiResponse<PageResponse<StoreResponse>>> getAllStores(
+            @Parameter(description = "페이지네이션 정보")
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        PageResponse<StoreResponse> stores = storeService.getAllStores(pageable);
+        return ResponseEntity.ok(ApiResponse.success(stores));
+    }
 } 
