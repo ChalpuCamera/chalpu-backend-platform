@@ -31,7 +31,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/test")
 @RequiredArgsConstructor
-@Profile({"!dev & !prod"}) // dev, prod 환경에서는 이 컨트롤러가 활성화되지 않음
+@Profile({"local"}) // dev, prod 환경에서는 이 컨트롤러가 활성화되지 않음
 @Tag(name = "Test", description = "테스트 API")
 public class TestTokenController {
 
