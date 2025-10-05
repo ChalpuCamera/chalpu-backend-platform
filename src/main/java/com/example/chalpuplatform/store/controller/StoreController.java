@@ -70,14 +70,7 @@ public class StoreController {
     @GetMapping("/{storeId}")
     @Operation(summary = "매장 상세 조회", description = "특정 매장의 상세 정보를 조회합니다.")
     public ResponseEntity<ApiResponse<StoreResponse>> getStore(
-            @PathVariable Long storeId,
-            @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        
-        // 권한 검증: 사용자가 해당 매장에 접근할 수 있는지 확인
-        if (!userStoreRoleService.canUserAccessStore(userDetails.getId(), storeId)) {
-            throw new StoreException(ErrorMessage.STORE_NOT_FOUND);
-        }
-        
+            @PathVariable("storeId") Long storeId) {
         StoreResponse store = storeService.getStore(storeId);
         return ResponseEntity.ok(ApiResponse.success(store));
     }
@@ -155,7 +148,7 @@ public class StoreController {
     }
 
     @GetMapping("/all")
-    @Operation(summary = "전체 매장 매장 목록 조회", description = "전체 매장 목록을 페이지네이션으로 조회합니다.")
+    @Operation(summary = "전체 매장 목록 조회", description = "전체 매장 목록을 페이지네이션으로 조회합니다.")
     public ResponseEntity<ApiResponse<PageResponse<StoreResponse>>> getAllStores(
             @Parameter(description = "페이지네이션 정보")
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
