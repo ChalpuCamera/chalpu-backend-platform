@@ -61,6 +61,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/notices/**").permitAll()
                         // 앱 버전 관련 경로
                         .requestMatchers("/api/home/version/**").permitAll()
+                        // 매장 및 음식 조회 관련 경로
+                        .requestMatchers("/api/stores/all").permitAll()
+                        .requestMatchers("/api/stores/{storeId}").permitAll()
+                        .requestMatchers("/api/foods/{foodId}").permitAll()
+                        .requestMatchers("/api/foods/store/{storeId}").permitAll()
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )
