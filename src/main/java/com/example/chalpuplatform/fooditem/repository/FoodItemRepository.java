@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -30,4 +31,12 @@ public interface FoodItemRepository extends JpaRepository<FoodItem, Long> {
     // 메뉴 추출을 위한 중복 체크용 메서드
     @Query("SELECT fi FROM FoodItem fi WHERE fi.store.id = :storeId AND fi.foodName = :foodName AND fi.isActive = true")
     Optional<FoodItem> findByStoreIdAndFoodName(@Param("storeId") Long storeId, @Param("foodName") String foodName);
+
+    @Modifying
+    @Query("UPDATE FoodItem f SET f.feedbackCount = f.feedbackCount + 1 WHERE f.id = :foodItemId")
+    void incrementFeedbackCount(@Param("foodItemId") Long foodItemId);
+
+    @Modifying
+    @Query("UPDATE FoodItem f SET f.feedbackCount = f.feedbackCount - 1 WHERE f.id = :foodItemId AND f.feedbackCount > 0")
+    void decrementFeedbackCount(@Param("foodItemId") Long foodItemId);
 } 
