@@ -43,9 +43,12 @@ public class FoodItemResponse {
 
     @Schema(description = "생성 시간", example = "2024-01-15T09:30:00")
     private LocalDateTime createdAt;
-    
+
     @Schema(description = "수정 시간", example = "2024-01-15T10:30:00")
     private LocalDateTime updatedAt;
+
+    @Schema(description = "피드백 개수", example = "23")
+    private Long feedbackCount;
     
     public static FoodItemResponse from(FoodItem foodItem) {
         return FoodItemResponse.builder()
@@ -59,6 +62,7 @@ public class FoodItemResponse {
                 .isActive(foodItem.getIsActive())
                 .createdAt(foodItem.getCreatedAt())
                 .updatedAt(foodItem.getUpdatedAt())
+                .feedbackCount(foodItem.getFeedbackCount())
                 .build();
     }
 } 
