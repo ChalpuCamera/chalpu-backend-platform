@@ -37,6 +37,17 @@ public class Store extends BaseTimeEntity {
     @Schema(description = "가게 설명",nullable = true)
     private String description;
 
+    @Builder.Default
+    @Column(name = "feedback_count", nullable = false)
+    private Long feedbackCount = 0L;
+
+    @Builder.Default
+    @Column(name = "menu_count", nullable = false)
+    private Long menuCount = 0L;
+
+    @Column(name = "thumbnail_url")
+    private String thumbnailUrl;
+
     @Embedded
     private DeliveryPlatformLinks deliveryPlatformLinks;
     
@@ -74,5 +85,9 @@ public class Store extends BaseTimeEntity {
 
     public void softDelete() {
         this.isActive = false;
+    }
+
+    public void setThumbnailUrl(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
     }
 } 
