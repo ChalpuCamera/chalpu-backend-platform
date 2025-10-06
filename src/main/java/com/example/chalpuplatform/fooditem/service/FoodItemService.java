@@ -70,6 +70,9 @@ public class FoodItemService {
         FoodItem foodItem = FoodItem.createFoodItem(store, foodItemRequest);
         FoodItem savedFoodItem = foodItemRepository.save(foodItem);
 
+        // Store의 메뉴 카운트 원자적 증가
+        storeRepository.incrementMenuCount(storeId);
+
         log.info("event=food_item_created, food_item_id={}, store_id={}, user_id={}",
                 savedFoodItem.getId(), storeId, userId);
 
@@ -116,12 +119,15 @@ public class FoodItemService {
         // 1. 연관된 Photo들 소프트 딜리트
         photoRepository.softDeleteByFoodItemId(foodItemId);
 
-        // 3. FoodItem 자체 소프트 딜리트
+        // 2. FoodItem 자체 소프트 딜리트
         FoodItem foodItem = foodItemRepository.findByIdAndIsActiveTrueWithoutJoin(foodItemId)
                 .orElseThrow(() -> new FoodException(ErrorMessage.FOOD_NOT_FOUND));
         foodItem.softDelete();
 
         foodItemRepository.save(foodItem);
+
+        // 3. Store의 메뉴 카운트 원자적 감소
+        storeRepository.decrementMenuCount(storeId);
 
         log.info("event=food_item_deleted, food_item_id={}, store_id={}", foodItemId, storeId);
     }

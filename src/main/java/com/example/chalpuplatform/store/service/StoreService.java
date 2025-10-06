@@ -108,4 +108,21 @@ public class StoreService {
                 storeRepository.findByIsActiveTrue(pageable).map(StoreResponse::from)
         );
     }
+
+    public StoreResponse updateStoreThumbnail(Long storeId, String photoUrl, Long userId) {
+        try {
+            Store store = storeRepository.findByIdAndIsActiveTrue(storeId)
+                    .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
+
+            store.setThumbnailUrl(photoUrl);
+            Store savedStore = storeRepository.save(store);
+
+            log.info("매장 대표 사진 설정: storeId={}, photoUrl={}, userId={}", storeId, photoUrl, userId);
+            return StoreResponse.from(savedStore);
+        } catch (Exception e) {
+            log.error("event=store_thumbnail_update_failed, store_id={}, error_message={}",
+                    storeId, e.getMessage(), e);
+            throw new StoreException(ErrorMessage.STORE_UPDATE_FAILED);
+        }
+    }
 }
