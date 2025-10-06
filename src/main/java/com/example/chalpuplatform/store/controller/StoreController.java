@@ -155,4 +155,16 @@ public class StoreController {
         PageResponse<StoreResponse> stores = storeService.getAllStores(pageable);
         return ResponseEntity.ok(ApiResponse.success(stores));
     }
+
+    @PutMapping("/{storeId}/thumbnail")
+    @Operation(summary = "매장 대표 사진 설정", description = "매장의 대표 사진 URL을 설정합니다.")
+    @PreAuthorize("hasRole('OWNER')")
+    public ResponseEntity<ApiResponse<StoreResponse>> updateStoreThumbnail(
+            @PathVariable("storeId") @Parameter(description = "매장 ID") Long storeId,
+            @RequestParam("photoUrl") @Parameter(description = "대표 사진 URL") String photoUrl,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        StoreResponse response = storeService.updateStoreThumbnail(storeId, photoUrl, userDetails.getId());
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 } 

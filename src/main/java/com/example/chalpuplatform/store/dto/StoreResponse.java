@@ -36,6 +36,15 @@ public class StoreResponse {
 
     @Schema(description = "가게 설명", example = "저희 가게는 신선한 재료로 음식을 만듭니다.")
     private String description;
+
+    @Schema(description = "피드백 개수", example = "42")
+    private Long feedbackCount;
+
+    @Schema(description = "메뉴 개수", example = "15")
+    private Long menuCount;
+
+    @Schema(description = "썸네일 URL", example = "https://chalpu.s3.ap-northeast-2.amazonaws.com/stores/1/thumbnail.jpg")
+    private String thumbnailUrl;
     
 
     public static StoreResponse from(Store store) {
@@ -44,6 +53,9 @@ public class StoreResponse {
                 .storeName(store.getStoreName())
                 .address(store.getAddress())
                 .description(store.getDescription())
+                .feedbackCount(store.getFeedbackCount())
+                .menuCount(store.getMenuCount())
+                .thumbnailUrl(store.getThumbnailUrl())
                 .baeminLink(store.getDeliveryPlatformLinks() != null && store.getDeliveryPlatformLinks().getBaeminLink() != null
                         ? store.getDeliveryPlatformLinks().getBaeminLink() : "")
                 .yogiyoLink(store.getDeliveryPlatformLinks() != null && store.getDeliveryPlatformLinks().getYogiyoLink() != null

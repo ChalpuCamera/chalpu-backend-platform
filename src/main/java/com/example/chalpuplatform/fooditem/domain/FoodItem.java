@@ -44,6 +44,10 @@ public class FoodItem extends BaseTimeEntity {
     @Builder.Default
     private Boolean isActive = true;
 
+    @Builder.Default
+    @Column(name = "feedback_count", nullable = false)
+    private Long feedbackCount = 0L;
+
     // 정적 팩토리 메서드
     public static FoodItem createFoodItem(Store store, FoodItemRequest request) {
         return FoodItem.builder()

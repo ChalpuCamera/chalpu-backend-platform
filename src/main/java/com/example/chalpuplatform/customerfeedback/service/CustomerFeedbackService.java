@@ -123,6 +123,12 @@ public class CustomerFeedbackService {
 
         CustomerFeedback savedFeedback = feedbackRepository.save(feedback);
 
+        // Store와 FoodItem의 피드백 카운트 원자적 증가
+        storeRepository.incrementFeedbackCount(store.getId());
+        foodItemRepository.incrementFeedbackCount(foodItem.getId());
+        log.info("피드백 카운트 증가: storeId={}, foodItemId={}, feedbackId={}",
+                store.getId(), foodItem.getId(), savedFeedback.getId());
+
         // 캠페인 연결 시 카운트 원자적 증가
         if (campaign != null) {
             campaignRepository.incrementFeedbackCount(campaign.getId());
