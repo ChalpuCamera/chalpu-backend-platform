@@ -63,6 +63,7 @@ public enum ErrorMessage {
     STORE_MEMBER_NOT_FOUND(NOT_FOUND, "매장 구성원을 찾을 수 없습니다."),
     STORE_MEMBER_ALREADY_EXISTS(BAD_REQUEST, "이미 매장 구성원으로 등록되어 있습니다."),
     STORE_OWNER_CANNOT_LEAVE(FORBIDDEN, "소유자는 탈퇴할 수 없습니다. 매장을 다른 사람에게 양도하거나 삭제해야 합니다."),
+    STORE_NAME_ALREADY_EXISTS(BAD_REQUEST, "이미 존재하는 매장 이름입니다."),
     
     // 메뉴 관련 에러
     MENU_NOT_FOUND(NOT_FOUND, "메뉴를 찾을 수 없습니다."),
