@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -43,6 +44,11 @@ public class StoreService {
 
     public StoreResponse createStore(StoreRequest storeRequest) {
         try {
+            Optional<Store> storeName = storeRepository.findByStoreName(storeRequest.getStoreName());
+            if (storeName.isPresent()) {
+                throw new StoreException(ErrorMessage.STORE_NAME_ALREADY_EXISTS);
+            }
+
             Store store = Store.createStore(storeRequest);
             Store savedStore = storeRepository.save(store);
             log.info("event=store_created, store_id={}", savedStore.getId());
@@ -50,7 +56,7 @@ public class StoreService {
         } catch (Exception e) {
             log.error("event=store_creation_failed, store_name={}, error_message={}",
                     storeRequest.getStoreName(), e.getMessage(), e);
-            throw new StoreException(ErrorMessage.STORE_CREATE_FAILED);
+            throw e;
         }
     }
 

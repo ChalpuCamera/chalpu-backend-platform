@@ -36,4 +36,6 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
     @Modifying
     @Query("UPDATE Store s SET s.menuCount = s.menuCount - 1 WHERE s.id = :storeId AND s.menuCount > 0")
     void decrementMenuCount(@Param("storeId") Long storeId);
+
+    Optional<Store> findByStoreName(String storeName);
 } 
