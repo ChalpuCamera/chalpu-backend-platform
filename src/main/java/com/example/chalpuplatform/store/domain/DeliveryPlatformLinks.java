@@ -11,13 +11,28 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class DeliveryPlatformLinks {
-    
-    @Column(name = "baemin_link", columnDefinition = "TEXT", nullable = true)
+
+    @Column(name = "baemin_link", length = 255, nullable = true)
     private String baeminLink;
-    
-    @Column(name = "yogiyo_link", columnDefinition = "TEXT", nullable = true)
+
+    @Column(name = "yogiyo_link", length = 255, nullable = true)
     private String yogiyoLink;
-    
-    @Column(name = "coupangeats_link", columnDefinition = "TEXT", nullable = true)
+
+    @Column(name = "coupangeats_link", length = 255, nullable = true)
     private String coupangeatsLink;
+
+    @Column(name = "naver_map_link", length = 255, nullable = true)
+    private String naverLink;
+
+    @Column(name = "kakao_map_link", length = 255, nullable = true)
+    private String kakaoLink;
+
+    @Column(name = "instagram_link", length = 255, nullable = true)
+    private String instagramLink;
+
+    @Column(name = "kakao_talk_link", length = 255, nullable = true)
+    private String kakaoTalkLink;
+
+    @Column(name = "site_link", length = 255, nullable = true)
+    private String siteLink;
 }

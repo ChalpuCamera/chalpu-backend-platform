@@ -24,7 +24,7 @@ public class Store extends BaseTimeEntity {
     @Column(name = "store_id")
     private Long id;
 
-    @Column(length = 100, nullable = false, unique = true)
+    @Column(length = 100, nullable = false)
     private String storeName;
 
     @Column(name = "address")
@@ -42,7 +42,7 @@ public class Store extends BaseTimeEntity {
     private Long feedbackCount = 0L;
 
     @Builder.Default
-    @Column(name = "menu_count", nullable = false)
+@Column(name = "menu_count", nullable = false)
     private Long menuCount = 0L;
 
     @Column(name = "thumbnail_url")
@@ -66,6 +66,11 @@ public class Store extends BaseTimeEntity {
                         .baeminLink(storeRequest.getBaeminLink())
                         .yogiyoLink(storeRequest.getYogiyoLink())
                         .coupangeatsLink(storeRequest.getCoupangeatsLink())
+                        .naverLink(storeRequest.getNaverLink())
+                        .kakaoLink(storeRequest.getKakaoLink())
+                        .instagramLink(storeRequest.getInstagramLink())
+                        .kakaoTalkLink(storeRequest.getKakaoTalkLink())
+                        .siteLink(storeRequest.getSiteLink())
                         .build())
                 .build();
     }
@@ -81,6 +86,11 @@ public class Store extends BaseTimeEntity {
         this.deliveryPlatformLinks.setBaeminLink(storeRequest.getBaeminLink());
         this.deliveryPlatformLinks.setYogiyoLink(storeRequest.getYogiyoLink());
         this.deliveryPlatformLinks.setCoupangeatsLink(storeRequest.getCoupangeatsLink());
+        this.deliveryPlatformLinks.setNaverLink(storeRequest.getNaverLink());
+        this.deliveryPlatformLinks.setKakaoLink(storeRequest.getKakaoLink());
+        this.deliveryPlatformLinks.setInstagramLink(storeRequest.getInstagramLink());
+        this.deliveryPlatformLinks.setKakaoTalkLink(storeRequest.getKakaoTalkLink());
+        this.deliveryPlatformLinks.setSiteLink(storeRequest.getSiteLink());
     }
 
     public void softDelete() {

@@ -44,19 +44,23 @@ public class StoreService {
 
     public StoreResponse createStore(StoreRequest storeRequest) {
         try {
-            Optional<Store> storeName = storeRepository.findByStoreName(storeRequest.getStoreName());
-            if (storeName.isPresent()) {
-                throw new StoreException(ErrorMessage.STORE_NAME_ALREADY_EXISTS);
+            if (storeRequest.getSiteLink() != null && !storeRequest.getSiteLink().isEmpty()) {
+                Optional<Store> existingSiteLink = storeRepository.findBySiteLink(storeRequest.getSiteLink());
+                if (existingSiteLink.isPresent()) {
+                    throw new StoreException(ErrorMessage.SITE_LINK_ALREADY_EXISTS);
+                }
             }
 
             Store store = Store.createStore(storeRequest);
             Store savedStore = storeRepository.save(store);
             log.info("event=store_created, store_id={}", savedStore.getId());
             return StoreResponse.from(savedStore);
+        } catch (StoreException e) {
+            throw e;
         } catch (Exception e) {
             log.error("event=store_creation_failed, store_name={}, error_message={}",
                     storeRequest.getStoreName(), e.getMessage(), e);
-            throw e;
+            throw new StoreException(ErrorMessage.STORE_CREATE_FAILED);
         }
     }
 
