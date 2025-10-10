@@ -28,6 +28,21 @@ public class StoreRequest {
     @Schema(description = "쿠팡이츠 링크", example = "https://coupangeats.com/store/12345")
     private String coupangeatsLink;
 
+    @Schema(description = "네이버 지도 링크", example = "https://map.naver.com/v5/entry/place/12345")
+    private String naverLink;
+
+    @Schema(description = "카카오맵 링크", example = "https://place.map.kakao.com/12345")
+    private String kakaoLink;
+
+    @Schema(description = "인스타그램 링크", example = "https://instagram.com/store_account")
+    private String instagramLink;
+
+    @Schema(description = "카카오톡 채널 링크", example = "https://pf.kakao.com/_store")
+    private String kakaoTalkLink;
+
+    @Schema(description = "사이트 링크 (URL 경로용)", example = "우리집냉면")
+    private String siteLink;
+
     @Schema(description = "가게 설명", example = "저희 가게는 신선한 재료로 음식을 만듭니다.")
     private String description;
 } 
