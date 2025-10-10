@@ -24,15 +24,15 @@ public class StorePublicController {
 
     private final StoreRepository storeRepository;
 
-    @GetMapping("/{storeName}")
+    @GetMapping("/{siteLink}")
     @Operation(
-            summary = "매장명으로 매장 조회",
-            description = "매장명으로 매장 ID를 조회합니다. 인증이 필요없는 공개 API입니다."
+            summary = "사이트 링크로 매장 조회",
+            description = "사이트 링크로 매장 ID를 조회합니다. 인증이 필요없는 공개 API입니다."
     )
-    public ResponseEntity<ApiResponse<StoreIdResponse>> getStoreByName(
-            @PathVariable("storeName") @Parameter(description = "매장명") String storeName) {
+    public ResponseEntity<ApiResponse<StoreIdResponse>> getStoreBySiteLink(
+            @PathVariable("siteLink") @Parameter(description = "사이트 링크") String siteLink) {
 
-        Store store = storeRepository.findByStoreName(storeName)
+        Store store = storeRepository.findBySiteLink(siteLink)
                 .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
 
         return ResponseEntity.ok(ApiResponse.success(StoreIdResponse.from(store)));
