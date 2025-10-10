@@ -38,4 +38,7 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
     void decrementMenuCount(@Param("storeId") Long storeId);
 
     Optional<Store> findByStoreName(String storeName);
+
+    @Query("SELECT s FROM Store s WHERE s.deliveryPlatformLinks.siteLink = :siteLink")
+    Optional<Store> findBySiteLink(@Param("siteLink") String siteLink);
 } 
