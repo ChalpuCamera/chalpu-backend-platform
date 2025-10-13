@@ -4,14 +4,17 @@ import com.example.chalpuplatform.common.exception.ErrorMessage;
 import com.example.chalpuplatform.common.exception.UserException;
 import com.example.chalpuplatform.oauth.dto.UserInfoDTO;
 import com.example.chalpuplatform.oauth.jwt.UserDetailsImpl;
-import com.example.chalpuplatform.photo.repository.PhotoRepository;
+import com.example.chalpuplatform.store.domain.UserStoreRole;
 import com.example.chalpuplatform.store.repository.UserStoreRoleRepository;
+import com.example.chalpuplatform.store.service.StoreService;
 import com.example.chalpuplatform.user.domain.User;
 import com.example.chalpuplatform.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -20,8 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final PhotoRepository photoRepository;
     private final UserStoreRoleRepository userStoreRoleRepository;
+    private final StoreService storeService;
 
     @Transactional(readOnly = true)
     public UserInfoDTO getCurrentUser(UserDetailsImpl currentUser) {
@@ -57,20 +60,29 @@ public class UserService {
     public void softDelete(Long userId) {
         User user = userRepository.findByIdWithDeleted(userId)
                 .orElseThrow(() -> new UserException(ErrorMessage.USER_NOT_FOUND));
-        
+
         // 이미 삭제된 경우 추가 작업 없이 종료
         if (user.getDeletedAt() != null) {
             log.warn("event=AlreadyDeletedUserAttempt, userId={}", userId);
             return;
         }
-        // 2. 연관된 UserStoreRole들 소프트 딜리트  
+
+        // 1. User가 OWNER인 Store들 조회 및 삭제
+        List<UserStoreRole> ownerRoles = userStoreRoleRepository.findOwnerRolesByUserId(userId);
+        for (UserStoreRole ownerRole : ownerRoles) {
+            Long storeId = ownerRole.getStore().getId();
+            storeService.deleteStore(storeId);
+            log.info("event=OwnerStoreDeleted, userId={}, storeId={}", userId, storeId);
+        }
+
+        // 2. 남은 UserStoreRole들 소프트 딜리트
         userStoreRoleRepository.softDeleteByUserId(userId);
 
         log.info("event=UserSoftDeleted, userId={}", userId);
 
-        // 4. User 자체 소프트 딜리트
+        // 3. User 자체 소프트 딜리트
         user.softDelete();
-        userRepository.save(user); // 변경된 상태를 DB에 반영
+        userRepository.save(user);
     }
 
     public void activateUser(Long userId) {

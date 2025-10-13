@@ -17,8 +17,6 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
     
     Optional<Store> findByIdAndIsActiveTrue(Long id);
 
-    List<Store> findByIsActiveTrue();
-
     Page<Store> findByIsActiveTrue(Pageable pageable);
 
     @Modifying
@@ -41,4 +39,4 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
 
     @Query("SELECT s FROM Store s WHERE s.deliveryPlatformLinks.siteLink = :siteLink")
     Optional<Store> findBySiteLink(@Param("siteLink") String siteLink);
-} 
+}

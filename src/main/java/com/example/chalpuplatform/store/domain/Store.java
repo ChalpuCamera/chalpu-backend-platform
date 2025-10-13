@@ -42,7 +42,7 @@ public class Store extends BaseTimeEntity {
     private Long feedbackCount = 0L;
 
     @Builder.Default
-@Column(name = "menu_count", nullable = false)
+    @Column(name = "menu_count", nullable = false)
     private Long menuCount = 0L;
 
     @Column(name = "thumbnail_url")

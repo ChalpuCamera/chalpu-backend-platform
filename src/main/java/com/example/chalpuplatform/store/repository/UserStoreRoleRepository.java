@@ -59,4 +59,11 @@ public interface UserStoreRoleRepository extends JpaRepository<UserStoreRole, Lo
     @Modifying
     @Query("UPDATE UserStoreRole usr SET usr.isActive = true WHERE usr.user.id = :userId")
     void activateByUserId(@Param("userId") Long userId);
+
+    /**
+     * User가 OWNER인 Store들 조회
+     * @param userId 사용자 ID
+     */
+    @Query("SELECT usr FROM UserStoreRole usr JOIN FETCH usr.store WHERE usr.user.id = :userId AND usr.roleType = 'OWNER' AND usr.isActive = true")
+    List<UserStoreRole> findOwnerRolesByUserId(@Param("userId") Long userId);
 } 
