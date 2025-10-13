@@ -95,6 +95,9 @@ public class Store extends BaseTimeEntity {
 
     public void softDelete() {
         this.isActive = false;
+        if (this.deliveryPlatformLinks != null) {
+            this.deliveryPlatformLinks.setSiteLink(null);
+        }
     }
 
     public void setThumbnailUrl(String thumbnailUrl) {
