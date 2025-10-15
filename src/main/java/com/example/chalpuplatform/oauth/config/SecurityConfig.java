@@ -42,6 +42,7 @@ public class SecurityConfig {
                         // 공개 경로
                         .requestMatchers("/", "/login", "/login.html", "/error", "/favicon.ico","/util/token","/actuator/**").permitAll()
                         .requestMatchers("/index.html","/test.html","/landing/**").permitAll()
+                        .requestMatchers("/api/landing/**").permitAll()
                         .requestMatchers("/api/auth/refresh", "/api/auth/logout", "/api/auth/me").permitAll()
                         .requestMatchers("/api/auth/token", "/api/auth/token/exchange").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
