@@ -1,4 +1,6 @@
-package com.example.chalpuplatform.oauth.dto.mobile;
+package com.example.chalpuplatform.oauth.mobile.dto;
+
+import com.example.chalpuplatform.fcm.domain.DeviceType;
 
 /**
  * OAuth 로그인 요청 공통 인터페이스
@@ -19,7 +21,7 @@ public interface LoginRequest {
     /**
      * 디바이스 타입 반환
      */
-    String getDeviceType();
+    DeviceType getDeviceType();
 
     /**
      * 디바이스 모델명 반환

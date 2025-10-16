@@ -4,6 +4,7 @@ import com.example.chalpuplatform.common.exception.ErrorMessage;
 import com.example.chalpuplatform.common.exception.OAuth2AuthenticationProcessingException;
 import com.example.chalpuplatform.oauth.model.AuthProvider;
 import com.example.chalpuplatform.oauth.provider.OAuth2UserInfo;
+import com.example.chalpuplatform.user.domain.Role;
 import com.example.chalpuplatform.user.domain.User;
 import com.example.chalpuplatform.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,21 +22,29 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 public class OAuth2UserResolver {
-    
+
     private final UserRepository userRepository;
     private final OAuth2UserFactory userFactory;
-    
+
     /**
-     * 사용자 조회 또는 생성
+     * 사용자 조회 또는 생성 (기본 역할)
      */
     @Transactional
     public User resolveUser(OAuth2UserInfo userInfo, AuthProvider provider) {
+        return resolveUser(userInfo, provider, null);
+    }
+
+    /**
+     * 사용자 조회 또는 생성 (역할 지정)
+     */
+    @Transactional
+    public User resolveUser(OAuth2UserInfo userInfo, AuthProvider provider, Role role) {
         Optional<User> userOptional = userRepository.findByEmailWithDeleted(userInfo.getEmail());
-        
+
         if (userOptional.isPresent()) {
             return handleExistingUser(userOptional.get(), userInfo, provider);
         } else {
-            return createNewUser(userInfo, provider);
+            return createNewUser(userInfo, provider, role);
         }
     }
     
@@ -71,8 +80,13 @@ public class OAuth2UserResolver {
     /**
      * 새 사용자 생성
      */
-    private User createNewUser(OAuth2UserInfo userInfo, AuthProvider provider) {
-        User newUser = userFactory.createUser(userInfo, provider);
+    private User createNewUser(OAuth2UserInfo userInfo, AuthProvider provider, Role role) {
+        User newUser;
+        if (role != null) {
+            newUser = userFactory.createUser(userInfo, provider, role);
+        } else {
+            newUser = userFactory.createUser(userInfo, provider);
+        }
         return userRepository.save(newUser);
     }
 }

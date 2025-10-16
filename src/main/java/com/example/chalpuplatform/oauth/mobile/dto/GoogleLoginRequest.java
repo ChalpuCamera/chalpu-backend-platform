@@ -1,5 +1,6 @@
-package com.example.chalpuplatform.oauth.dto.mobile;
+package com.example.chalpuplatform.oauth.mobile.dto;
 
+import com.example.chalpuplatform.fcm.domain.DeviceType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,8 +24,10 @@ public class GoogleLoginRequest implements LoginRequest {
     @Schema(description = "FCM 토큰", example = "fcm_token_here")
     private String fcmToken;
 
-    @Schema(description = "디바이스 타입", example = "android")
-    private String deviceType;
+    @Schema(description = "디바이스 타입",
+            example = "ANDROID",
+            allowableValues = {"ANDROID", "IOS"})
+    private DeviceType deviceType;
 
     @Schema(description = "디바이스 모델명", example = "iPhone 14 Pro")
     private String deviceModel;

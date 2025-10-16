@@ -1,5 +1,6 @@
-package com.example.chalpuplatform.oauth.dto.mobile;
+package com.example.chalpuplatform.oauth.mobile.dto;
 
+import com.example.chalpuplatform.fcm.domain.DeviceType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +17,7 @@ public class KakaoLoginRequest implements LoginRequest {
     private String fcmToken;
     
     @Schema(description = "디바이스 타입", example = "android")
-    private String deviceType;
+    private DeviceType deviceType;
 
     @Schema(description = "디바이스 모델명", example = "iPhone 14 Pro")
     private String deviceModel;
@@ -29,4 +30,7 @@ public class KakaoLoginRequest implements LoginRequest {
     
     @Schema(description = "푸시 알림 허용 여부", example = "true")
     private Boolean isAllowed;
+
+    @Schema(description = "사용자 타입", example = "customer", allowableValues = {"customer", "owner"}, required = true)
+    private String userType;
 } 

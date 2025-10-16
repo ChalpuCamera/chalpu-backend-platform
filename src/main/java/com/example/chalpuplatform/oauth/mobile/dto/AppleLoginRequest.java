@@ -1,5 +1,6 @@
-package com.example.chalpuplatform.oauth.dto.mobile;
+package com.example.chalpuplatform.oauth.mobile.dto;
 
+import com.example.chalpuplatform.fcm.domain.DeviceType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,7 +19,7 @@ public class AppleLoginRequest implements LoginRequest {
     private String fcmToken;
     
     @Schema(description = "디바이스 타입", example = "ios")
-    private String deviceType;
+    private DeviceType deviceType;
 
     @Schema(description = "디바이스 모델명", example = "iPhone 14 Pro")
     private String deviceModel;
@@ -31,4 +32,7 @@ public class AppleLoginRequest implements LoginRequest {
     
     @Schema(description = "푸시 알림 허용 여부", example = "true")
     private Boolean isAllowed;
+
+    @Schema(description = "사용자 타입", example = "customer", allowableValues = {"customer", "owner"}, required = true)
+    private String userType;
 }
