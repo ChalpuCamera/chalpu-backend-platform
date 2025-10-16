@@ -20,9 +20,13 @@ public class ContactInquiry extends BaseTimeEntity {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    public static ContactInquiry createInquiry(String content) {
+    @Column(name = "유저 아이디")
+    private Long userId;
+
+    public static ContactInquiry createInquiry(String content, Long userId) {
         return ContactInquiry.builder()
                 .content(content)
+                .userId(userId)
                 .build();
     }
 }

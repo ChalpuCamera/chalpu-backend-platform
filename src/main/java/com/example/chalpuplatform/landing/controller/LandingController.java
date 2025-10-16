@@ -7,11 +7,14 @@ import com.example.chalpuplatform.landing.dto.ButtonLogRequest;
 import com.example.chalpuplatform.landing.dto.ContactInquiryRequest;
 import com.example.chalpuplatform.landing.repository.ContactInquiryRepository;
 import com.example.chalpuplatform.landing.repository.LandingPageButtonLogRepository;
+import com.example.chalpuplatform.oauth.jwt.UserDetailsImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -47,10 +50,11 @@ public class LandingController {
             summary = "문의 내용 저장",
             description = "랜딩페이지에서 문의 내용을 저장합니다."
     )
-    public ResponseEntity<ApiResponse<Void>> saveInquiry(@RequestBody ContactInquiryRequest request) {
+    public ResponseEntity<ApiResponse<Void>> saveInquiry(@RequestBody ContactInquiryRequest request,
+                                                         @AuthenticationPrincipal UserDetailsImpl userDetails) {
         log.info("Contact inquiry saved");
 
-        ContactInquiry inquiry = ContactInquiry.createInquiry(request.getContent());
+        ContactInquiry inquiry = ContactInquiry.createInquiry(request.getContent(),userDetails.getId());
         inquiryRepository.save(inquiry);
 
         return ResponseEntity.ok(ApiResponse.success(null));
