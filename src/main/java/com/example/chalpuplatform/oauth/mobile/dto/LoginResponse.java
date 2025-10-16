@@ -1,5 +1,6 @@
-package com.example.chalpuplatform.oauth.dto;
+package com.example.chalpuplatform.oauth.dto.mobile;
 
+import com.example.chalpuplatform.oauth.dto.TokenDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

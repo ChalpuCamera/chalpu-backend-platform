@@ -14,4 +14,7 @@ public class ButtonLogRequest {
     @Schema(description = "버튼 타입",
             example = "START_FREE")
     private ButtonType buttonType;
+
+    @Schema(description = "세션 ID", example = "abc123session")
+    private String sessionId;
 }
