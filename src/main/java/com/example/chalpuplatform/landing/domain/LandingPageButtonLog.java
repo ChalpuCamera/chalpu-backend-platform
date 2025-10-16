@@ -21,9 +21,13 @@ public class LandingPageButtonLog extends BaseTimeEntity {
     @Column(nullable = false, length = 30)
     private ButtonType buttonType;
 
-    public static LandingPageButtonLog createLog(ButtonType buttonType) {
+    @Column(length = 60)
+    private String sessionId;
+
+    public static LandingPageButtonLog createLog(ButtonType buttonType, String sessionId) {
         return LandingPageButtonLog.builder()
                 .buttonType(buttonType)
+                .sessionId(sessionId)
                 .build();
     }
 }

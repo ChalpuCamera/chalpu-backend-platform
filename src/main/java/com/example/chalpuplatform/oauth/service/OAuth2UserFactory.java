@@ -13,25 +13,32 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class OAuth2UserFactory {
-    
+
     /**
-     * 새로운 OAuth2 사용자 생성
+     * 새로운 OAuth2 사용자 생성 (기본 역할)
      */
     public User createUser(OAuth2UserInfo userInfo, AuthProvider provider) {
+        return createUser(userInfo, provider, Role.ROLE_CUSTOMER);
+    }
+
+    /**
+     * 새로운 OAuth2 사용자 생성 (역할 지정)
+     */
+    public User createUser(OAuth2UserInfo userInfo, AuthProvider provider, Role role) {
         User user = User.builder()
                 .email(userInfo.getEmail())
                 .name(userInfo.getName())
                 .picture(userInfo.getImageUrl())
                 .socialId(userInfo.getId())
                 .provider(provider)
-                .role(Role.ROLE_CUSTOMER)  // 기본 역할
+                .role(role)
                 .isActive(true)
                 .build();
-        
-        log.info("새 OAuth2 사용자 생성: {}", user.getEmail());
+
+        log.info("새 OAuth2 사용자 생성: email={}, role={}", user.getEmail(), role);
         return user;
     }
-    
+
     /**
      * 기존 사용자 정보 업데이트
      */

@@ -36,7 +36,7 @@ public class LandingController {
     public ResponseEntity<ApiResponse<Void>> logButtonClick(@RequestBody ButtonLogRequest request) {
         log.info("Button click logged: {}", request.getButtonType());
 
-        LandingPageButtonLog log = LandingPageButtonLog.createLog(request.getButtonType());
+        LandingPageButtonLog log = LandingPageButtonLog.createLog(request.getButtonType(), request.getSessionId());
         buttonLogRepository.save(log);
 
         return ResponseEntity.ok(ApiResponse.success(null));
