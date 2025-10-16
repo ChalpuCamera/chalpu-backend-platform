@@ -68,6 +68,10 @@ jwt:
   expiration: 3600000
   refresh-token-expiration: 604800000
 
+google:
+  mobile:
+    client-ids: ${google-mobile-client-ids}
+
 server:
   port: 8080
   forward-headers-strategy: native
