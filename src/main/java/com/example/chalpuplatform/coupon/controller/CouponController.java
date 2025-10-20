@@ -53,46 +53,46 @@ public class CouponController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @PostMapping("/earn")
+    @PostMapping("/generate-pin")
     @Operation(
-        summary = "스탬프 적립",
-        description = "사장님이 발급한 PIN을 입력하여 스탬프를 적립합니다."
+        summary = "PIN 생성",
+        description = "손님이 전화번호를 입력하여 PIN을 생성합니다. 생성된 PIN을 사장님에게 불러주세요."
     )
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "적립 성공",
+            description = "PIN 생성 성공",
             content = @Content(
                 mediaType = "application/json",
                 examples = @ExampleObject(
-                    value = "{\"code\": 200, \"message\": \"API 요청이 성공했습니다.\", \"result\": {\"success\": true, \"currentStamps\": 7}}"
+                    value = "{\"code\": 200, \"message\": \"API 요청이 성공했습니다.\", \"result\": {\"pin\": \"47\", \"expiredAt\": \"2025-10-20T15:23:00\"}}"
                 )
             )
         ),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "400",
-            description = "잘못된 요청 (만료된 PIN, 이미 사용된 PIN 등)"
+            description = "잘못된 전화번호"
         ),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "404",
-            description = "유효하지 않은 PIN"
+            description = "매장을 찾을 수 없음"
         )
     })
-    public ResponseEntity<ApiResponse<CouponEarnResponse>> earnStamps(
+    public ResponseEntity<ApiResponse<CouponGeneratePinResponse>> generatePin(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                description = "스탬프 적립 요청",
+                description = "PIN 생성 요청",
                 required = true,
                 content = @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = CouponEarnRequest.class),
+                    schema = @Schema(implementation = CouponGeneratePinRequest.class),
                     examples = @ExampleObject(
-                        value = "{\"storeId\": 1, \"phone\": \"010-1234-5678\", \"pin\": \"47\"}"
+                        value = "{\"storeId\": 1, \"phone\": \"010-1234-5678\"}"
                     )
                 )
             )
-            @RequestBody CouponEarnRequest request) {
+            @RequestBody CouponGeneratePinRequest request) {
 
-        CouponEarnResponse response = couponService.earnStamps(request);
+        CouponGeneratePinResponse response = couponService.generatePinForCustomer(request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
