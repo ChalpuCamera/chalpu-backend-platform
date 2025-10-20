@@ -50,6 +50,7 @@ module "parameter_store" {
   kakao_client_secret       = var.kakao_client_secret
   google_client_id          = var.google_client_id
   google_client_secret      = var.google_client_secret
+  google_mobile_client_ids  = var.google_mobile_client_ids
   oauth2_redirect_success_path = var.oauth2_redirect_success_path
   oauth2_redirect_failure_path = var.oauth2_redirect_failure_path
   oauth2_owner_domain       = var.oauth2_owner_domain
