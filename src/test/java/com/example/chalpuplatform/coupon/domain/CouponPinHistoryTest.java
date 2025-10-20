@@ -18,7 +18,7 @@ class CouponPinHistoryTest {
 
     @BeforeEach
     void setUp() {
-        pinHistory = CouponPinHistory.create(1L, "47", 2);
+        pinHistory = CouponPinHistory.createForCustomer(1L, "47", "hashedPhone");
     }
 
     @Nested
@@ -26,22 +26,22 @@ class CouponPinHistoryTest {
     class CreateTest {
 
         @Test
-        @DisplayName("PIN을 생성한다")
-        void create_Success() {
-            CouponPinHistory newPin = CouponPinHistory.create(1L, "99", 5);
+        @DisplayName("고객이 PIN을 생성한다")
+        void createForCustomer_Success() {
+            CouponPinHistory newPin = CouponPinHistory.createForCustomer(1L, "99", "hashedPhone123");
 
             assertThat(newPin.getStoreId()).isEqualTo(1L);
             assertThat(newPin.getPin()).isEqualTo("99");
-            assertThat(newPin.getStamps()).isEqualTo(5);
+            assertThat(newPin.getStamps()).isNull();
             assertThat(newPin.getIsUsed()).isFalse();
-            assertThat(newPin.getPhoneHash()).isNull();
+            assertThat(newPin.getPhoneHash()).isEqualTo("hashedPhone123");
         }
 
         @Test
         @DisplayName("PIN 만료 시간은 생성 시점으로부터 3분 후다")
-        void create_ExpirationTime() {
+        void createForCustomer_ExpirationTime() {
             LocalDateTime before = LocalDateTime.now().plusMinutes(3).minusSeconds(1);
-            CouponPinHistory newPin = CouponPinHistory.create(1L, "47", 2);
+            CouponPinHistory newPin = CouponPinHistory.createForCustomer(1L, "47", "hashedPhone");
             LocalDateTime after = LocalDateTime.now().plusMinutes(3).plusSeconds(1);
 
             assertThat(newPin.getExpiredAt()).isBetween(before, after);
@@ -67,34 +67,47 @@ class CouponPinHistoryTest {
         @Test
         @DisplayName("사용된 PIN은 유효하지 않다")
         void isValid_Used_ReturnsFalse() {
-            pinHistory.markAsUsed("hashedPhone");
+            pinHistory.confirmStamps(2);
 
             assertThat(pinHistory.isValid()).isFalse();
         }
     }
 
     @Nested
-    @DisplayName("PIN 사용 처리 테스트")
-    class MarkAsUsedTest {
+    @DisplayName("스탬프 확정 테스트")
+    class ConfirmStampsTest {
 
         @Test
-        @DisplayName("PIN을 사용 처리한다")
-        void markAsUsed_Success() {
-            String phoneHash = "hashedPhone123";
-
-            pinHistory.markAsUsed(phoneHash);
+        @DisplayName("사장님이 스탬프를 확정한다")
+        void confirmStamps_Success() {
+            pinHistory.confirmStamps(2);
 
             assertThat(pinHistory.getIsUsed()).isTrue();
-            assertThat(pinHistory.getPhoneHash()).isEqualTo(phoneHash);
+            assertThat(pinHistory.getStamps()).isEqualTo(2);
         }
 
         @Test
-        @DisplayName("이미 사용된 PIN은 다시 사용할 수 없다")
-        void markAsUsed_AlreadyUsed_ThrowsException() {
-            pinHistory.markAsUsed("hashedPhone1");
+        @DisplayName("이미 확정된 PIN은 다시 확정할 수 없다")
+        void confirmStamps_AlreadyUsed_ThrowsException() {
+            pinHistory.confirmStamps(2);
 
-            assertThatThrownBy(() -> pinHistory.markAsUsed("hashedPhone2"))
+            assertThatThrownBy(() -> pinHistory.confirmStamps(3))
                     .isInstanceOf(CouponException.class);
+        }
+
+        @Test
+        @DisplayName("0 이하의 스탬프는 확정할 수 없다")
+        void confirmStamps_Zero_ThrowsException() {
+            assertThatThrownBy(() -> pinHistory.confirmStamps(0))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("1개 이상");
+        }
+
+        @Test
+        @DisplayName("null 스탬프는 확정할 수 없다")
+        void confirmStamps_Null_ThrowsException() {
+            assertThatThrownBy(() -> pinHistory.confirmStamps(null))
+                    .isInstanceOf(IllegalArgumentException.class);
         }
     }
 }

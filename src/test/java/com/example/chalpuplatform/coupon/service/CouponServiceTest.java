@@ -73,7 +73,8 @@ class CouponServiceTest {
                 .id(1L)
                 .storeId(1L)
                 .pin("47")
-                .stamps(2)
+                .phoneHash("hashedPhone")
+                .stamps(null)
                 .isUsed(false)
                 .expiredAt(LocalDateTime.now().plusMinutes(3))
                 .build();
@@ -122,14 +123,47 @@ class CouponServiceTest {
     }
 
     @Nested
-    @DisplayName("스탬프 적립 테스트")
-    class EarnStampsTest {
+    @DisplayName("고객 PIN 생성 테스트")
+    class GeneratePinForCustomerTest {
 
         @Test
-        @DisplayName("유효한 PIN으로 스탬프를 적립한다")
-        void earnStamps_ValidPin_Success() {
-            CouponEarnRequest request = new CouponEarnRequest(1L, "010-1234-5678", "47");
+        @DisplayName("고객이 PIN을 생성한다")
+        void generatePinForCustomer_Success() {
+            CouponGeneratePinRequest request = new CouponGeneratePinRequest(1L, "010-1234-5678");
 
+            given(storeRepository.findById(1L)).willReturn(Optional.of(store));
+            given(pinHistoryRepository.save(any())).willReturn(pinHistory);
+
+            CouponGeneratePinResponse response = couponService.generatePinForCustomer(request);
+
+            assertThat(response.getPin()).hasSize(2);
+            assertThat(response.getExpiredAt()).isNotNull();
+            verify(pinHistoryRepository).save(any());
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 매장은 예외를 발생시킨다")
+        void generatePinForCustomer_StoreNotFound_ThrowsException() {
+            CouponGeneratePinRequest request = new CouponGeneratePinRequest(1L, "010-1234-5678");
+
+            given(storeRepository.findById(1L)).willReturn(Optional.empty());
+
+            assertThatThrownBy(() -> couponService.generatePinForCustomer(request))
+                    .isInstanceOf(StoreException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("사장님 스탬프 적립 테스트")
+    class EarnStampsByOwnerTest {
+
+        @Test
+        @DisplayName("사장님이 PIN과 스탬프를 입력하여 적립한다")
+        void earnStampsByOwner_Success() {
+            CouponEarnStampsByOwnerRequest request = new CouponEarnStampsByOwnerRequest(1L, "47", 2);
+
+            given(userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(1L, 1L))
+                    .willReturn(Optional.of(mock(UserStoreRole.class)));
             given(pinHistoryRepository.findByStoreIdAndPinAndIsUsedFalse(1L, "47"))
                     .willReturn(Optional.of(pinHistory));
             given(membershipRepository.findByStoreIdAndPhoneHash(anyLong(), anyString()))
@@ -137,19 +171,22 @@ class CouponServiceTest {
             given(membershipRepository.save(any())).willReturn(membership);
             given(pinHistoryRepository.save(any())).willReturn(pinHistory);
 
-            CouponEarnResponse response = couponService.earnStamps(request);
+            CouponEarnStampsByOwnerResponse response = couponService.earnStampsByOwner(1L, request);
 
             assertThat(response.getSuccess()).isTrue();
             assertThat(response.getCurrentStamps()).isEqualTo(7);
+            assertThat(response.getAddedStamps()).isEqualTo(2);
             verify(pinHistoryRepository).save(any());
             verify(membershipRepository).save(any());
         }
 
         @Test
         @DisplayName("멤버십이 없으면 새로 생성한다")
-        void earnStamps_NewMembership_CreatesNew() {
-            CouponEarnRequest request = new CouponEarnRequest(1L, "010-1234-5678", "47");
+        void earnStampsByOwner_NewMembership_CreatesNew() {
+            CouponEarnStampsByOwnerRequest request = new CouponEarnStampsByOwnerRequest(1L, "47", 2);
 
+            given(userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(1L, 1L))
+                    .willReturn(Optional.of(mock(UserStoreRole.class)));
             given(pinHistoryRepository.findByStoreIdAndPinAndIsUsedFalse(1L, "47"))
                     .willReturn(Optional.of(pinHistory));
             given(membershipRepository.findByStoreIdAndPhoneHash(anyLong(), anyString()))
@@ -157,7 +194,7 @@ class CouponServiceTest {
             given(membershipRepository.save(any())).willReturn(membership);
             given(pinHistoryRepository.save(any())).willReturn(pinHistory);
 
-            CouponEarnResponse response = couponService.earnStamps(request);
+            CouponEarnStampsByOwnerResponse response = couponService.earnStampsByOwner(1L, request);
 
             assertThat(response.getSuccess()).isTrue();
             verify(membershipRepository, times(2)).save(any());
@@ -165,14 +202,28 @@ class CouponServiceTest {
 
         @Test
         @DisplayName("유효하지 않은 PIN은 예외를 발생시킨다")
-        void earnStamps_InvalidPin_ThrowsException() {
-            CouponEarnRequest request = new CouponEarnRequest(1L, "010-1234-5678", "99");
+        void earnStampsByOwner_InvalidPin_ThrowsException() {
+            CouponEarnStampsByOwnerRequest request = new CouponEarnStampsByOwnerRequest(1L, "99", 2);
 
+            given(userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(1L, 1L))
+                    .willReturn(Optional.of(mock(UserStoreRole.class)));
             given(pinHistoryRepository.findByStoreIdAndPinAndIsUsedFalse(1L, "99"))
                     .willReturn(Optional.empty());
 
-            assertThatThrownBy(() -> couponService.earnStamps(request))
+            assertThatThrownBy(() -> couponService.earnStampsByOwner(1L, request))
                     .isInstanceOf(CouponException.class);
+        }
+
+        @Test
+        @DisplayName("권한이 없으면 예외를 발생시킨다")
+        void earnStampsByOwner_NoPermission_ThrowsException() {
+            CouponEarnStampsByOwnerRequest request = new CouponEarnStampsByOwnerRequest(1L, "47", 2);
+
+            given(userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(1L, 1L))
+                    .willReturn(Optional.empty());
+
+            assertThatThrownBy(() -> couponService.earnStampsByOwner(1L, request))
+                    .isInstanceOf(StoreException.class);
         }
     }
 
@@ -227,40 +278,6 @@ class CouponServiceTest {
 
             assertThatThrownBy(() -> couponService.redeemCoupon(request))
                     .isInstanceOf(CouponException.class);
-        }
-    }
-
-    @Nested
-    @DisplayName("PIN 발급 테스트")
-    class IssuePinTest {
-
-        @Test
-        @DisplayName("권한이 있으면 PIN을 발급한다")
-        void issuePin_WithPermission_Success() {
-            CouponIssuePinRequest request = new CouponIssuePinRequest(1L, 2);
-
-            given(userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(1L, 1L))
-                    .willReturn(Optional.of(mock(UserStoreRole.class)));
-            given(pinHistoryRepository.save(any())).willReturn(pinHistory);
-
-            CouponIssuePinResponse response = couponService.issuePin(1L, request);
-
-            assertThat(response.getPin()).hasSize(2);
-            assertThat(response.getStamps()).isEqualTo(2);
-            assertThat(response.getExpiredAt()).isNotNull();
-            verify(pinHistoryRepository).save(any());
-        }
-
-        @Test
-        @DisplayName("권한이 없으면 예외를 발생시킨다")
-        void issuePin_NoPermission_ThrowsException() {
-            CouponIssuePinRequest request = new CouponIssuePinRequest(1L, 2);
-
-            given(userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(1L, 1L))
-                    .willReturn(Optional.empty());
-
-            assertThatThrownBy(() -> couponService.issuePin(1L, request))
-                    .isInstanceOf(StoreException.class);
         }
     }
 }
