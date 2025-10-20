@@ -72,7 +72,7 @@ public class CouponPinHistory extends BaseTimeEntity {
             throw new CouponException(ErrorMessage.COUPON_PIN_EXPIRED);
         }
         if (stamps == null || stamps <= 0) {
-            throw new IllegalArgumentException("스탬프 수는 1개 이상이어야 합니다");
+            throw new CouponException(ErrorMessage.COUPON_INVALID_STAMPS_COUNT);
         }
         this.stamps = stamps;
         this.isUsed = true;

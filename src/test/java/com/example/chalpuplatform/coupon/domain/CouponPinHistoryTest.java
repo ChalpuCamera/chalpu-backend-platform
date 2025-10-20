@@ -99,15 +99,14 @@ class CouponPinHistoryTest {
         @DisplayName("0 이하의 스탬프는 확정할 수 없다")
         void confirmStamps_Zero_ThrowsException() {
             assertThatThrownBy(() -> pinHistory.confirmStamps(0))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("1개 이상");
+                    .isInstanceOf(CouponException.class);
         }
 
         @Test
         @DisplayName("null 스탬프는 확정할 수 없다")
         void confirmStamps_Null_ThrowsException() {
             assertThatThrownBy(() -> pinHistory.confirmStamps(null))
-                    .isInstanceOf(IllegalArgumentException.class);
+                    .isInstanceOf(CouponException.class);
         }
     }
 }
