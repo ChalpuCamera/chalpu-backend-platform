@@ -60,7 +60,9 @@ public class StoreResponse {
 
     @Schema(description = "썸네일 URL", example = "https://chalpu.s3.ap-northeast-2.amazonaws.com/stores/1/thumbnail.jpg")
     private String thumbnailUrl;
-    
+
+    @Schema(description = "쿠폰 사용 개수", example = "10", required = false)
+    private Integer requiredStampsForCoupon;
 
     public static StoreResponse from(Store store) {
         return StoreResponse.builder()
@@ -87,6 +89,7 @@ public class StoreResponse {
                         ? store.getDeliveryPlatformLinks().getKakaoTalkLink() : "")
                 .siteLink(store.getDeliveryPlatformLinks() != null && store.getDeliveryPlatformLinks().getSiteLink() != null
                         ? store.getDeliveryPlatformLinks().getSiteLink() : "")
+                .requiredStampsForCoupon(store.getRequiredStampsForCoupon())
                 .build();
     }
 } 

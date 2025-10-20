@@ -211,7 +211,15 @@ public enum ErrorMessage {
     MENU_EXTRACTION_ALREADY_IN_PROGRESS(HttpStatus.CONFLICT, "이미 메뉴 추출이 진행 중입니다."),
     EXTRACTION_PROGRESS_NOT_FOUND(NOT_FOUND, "추출 진행 상태를 찾을 수 없습니다."),
     MENU_PARSING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "메뉴 텍스트 파싱에 실패했습니다."),
-    FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다.");
+    FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다."),
+
+    // 쿠폰 관련 에러
+    COUPON_PIN_NOT_FOUND(NOT_FOUND, "유효하지 않은 PIN입니다."),
+    COUPON_PIN_EXPIRED(BAD_REQUEST, "만료된 PIN입니다."),
+    COUPON_PIN_ALREADY_USED(BAD_REQUEST, "이미 사용된 PIN입니다."),
+    COUPON_INSUFFICIENT_STAMPS(BAD_REQUEST, "스탬프가 부족합니다."),
+    COUPON_MEMBERSHIP_NOT_FOUND(NOT_FOUND, "쿠폰 멤버십을 찾을 수 없습니다."),
+    COUPON_INVALID_PHONE_NUMBER(BAD_REQUEST, "유효하지 않은 전화번호입니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

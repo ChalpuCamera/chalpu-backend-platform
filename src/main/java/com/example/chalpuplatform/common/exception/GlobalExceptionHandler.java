@@ -156,6 +156,17 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * CouponException 처리
+     */
+    @ExceptionHandler(CouponException.class)
+    public ResponseEntity<ApiResponse<Void>> handleCouponException(CouponException ex) {
+        ErrorMessage errorMessage = ex.getErrorMessage();
+        logger.error("CouponException: {}", errorMessage.getMessage());
+        return ResponseEntity.status(errorMessage.getHttpStatus())
+                .body(ApiResponse.error(errorMessage.getHttpStatus().value(), errorMessage.getMessage()));
+    }
+
+    /**
      * JARException 처리
      */
     @ExceptionHandler(JARException.class)

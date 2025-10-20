@@ -68,6 +68,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/stores/{storeId}").permitAll()
                         .requestMatchers("/api/foods/{foodId}").permitAll()
                         .requestMatchers("/api/foods/store/{storeId}").permitAll()
+                        // 쿠폰 멤버십 조회 및 적립 관련 경로
+                        .requestMatchers("/api/coupon/**").permitAll()
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )

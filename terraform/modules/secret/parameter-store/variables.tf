@@ -72,6 +72,11 @@ variable "google_client_secret" {
   sensitive   = true
 }
 
+variable "google_mobile_client_ids" {
+  description = "Google mobile client IDs (Android, iOS) separated by comma"
+  type        = string
+}
+
 variable "oauth2_redirect_success_path" {
   description = "OAuth2 redirect success path"
   type        = string

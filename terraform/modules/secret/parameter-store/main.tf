@@ -147,6 +147,18 @@ resource "aws_ssm_parameter" "google_client_secret" {
   }
 }
 
+resource "aws_ssm_parameter" "google_mobile_client_ids" {
+  name        = "/chalpu-platform/${var.environment}/google-mobile-client-ids"
+  description = "Google mobile client IDs (Android, iOS)"
+  type        = "String"
+  value       = var.google_mobile_client_ids
+
+  tags = {
+    Name        = "chalpu-${var.environment}-google-mobile-client-ids"
+    Environment = var.environment
+  }
+}
+
 # OAuth2 Redirect Configuration
 resource "aws_ssm_parameter" "oauth2_redirect_success_path" {
   name        = "/chalpu-platform/${var.environment}/oauth2-redirect-success-path"

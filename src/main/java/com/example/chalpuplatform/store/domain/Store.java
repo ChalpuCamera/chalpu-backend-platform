@@ -48,6 +48,10 @@ public class Store extends BaseTimeEntity {
     @Column(name = "thumbnail_url")
     private String thumbnailUrl;
 
+    @Builder.Default
+    @Column(name = "required_stamps_for_coupon", nullable = false)
+    private Integer requiredStampsForCoupon = 10;
+
     @Embedded
     private DeliveryPlatformLinks deliveryPlatformLinks;
     
@@ -91,6 +95,7 @@ public class Store extends BaseTimeEntity {
         this.deliveryPlatformLinks.setInstagramLink(storeRequest.getInstagramLink());
         this.deliveryPlatformLinks.setKakaoTalkLink(storeRequest.getKakaoTalkLink());
         this.deliveryPlatformLinks.setSiteLink(storeRequest.getSiteLink());
+        this.requiredStampsForCoupon = storeRequest.getRequiredStampsForCoupon();
     }
 
     public void softDelete() {
