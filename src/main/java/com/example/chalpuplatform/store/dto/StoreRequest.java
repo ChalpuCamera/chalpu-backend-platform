@@ -45,4 +45,7 @@ public class StoreRequest {
 
     @Schema(description = "가게 설명", example = "저희 가게는 신선한 재료로 음식을 만듭니다.")
     private String description;
+
+    @Schema(description = "쿠폰 사용 개수", example = "10", required = false)
+    private Integer requiredStampsForCoupon;
 } 
