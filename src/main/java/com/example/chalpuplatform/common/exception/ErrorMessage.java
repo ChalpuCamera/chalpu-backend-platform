@@ -219,7 +219,8 @@ public enum ErrorMessage {
     COUPON_PIN_ALREADY_USED(BAD_REQUEST, "이미 사용된 PIN입니다."),
     COUPON_INSUFFICIENT_STAMPS(BAD_REQUEST, "스탬프가 부족합니다."),
     COUPON_MEMBERSHIP_NOT_FOUND(NOT_FOUND, "쿠폰 멤버십을 찾을 수 없습니다."),
-    COUPON_INVALID_PHONE_NUMBER(BAD_REQUEST, "유효하지 않은 전화번호입니다.");
+    COUPON_INVALID_PHONE_NUMBER(BAD_REQUEST, "유효하지 않은 전화번호입니다."),
+    COUPON_INVALID_STAMPS_COUNT(BAD_REQUEST, "스탬프 수는 1개 이상이어야 합니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
