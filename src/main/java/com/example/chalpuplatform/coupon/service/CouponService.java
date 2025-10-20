@@ -45,39 +45,27 @@ public class CouponService {
                 .orElse(CouponMembershipResponse.empty(store.getRequiredStampsForCoupon()));
     }
 
-    public CouponEarnResponse earnStamps(CouponEarnRequest request) {
+    public CouponGeneratePinResponse generatePinForCustomer(CouponGeneratePinRequest request) {
         String phoneHash = PhoneHashUtil.normalizeAndHash(request.getPhone());
 
-        CouponPinHistory pinHistory = pinHistoryRepository
-                .findByStoreIdAndPinAndIsUsedFalse(request.getStoreId(), request.getPin())
-                .orElseThrow(() -> new CouponException(ErrorMessage.COUPON_PIN_NOT_FOUND));
+        storeRepository.findById(request.getStoreId())
+                .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
 
-        if (!pinHistory.isValid()) {
-            if (pinHistory.isExpired()) {
-                throw new CouponException(ErrorMessage.COUPON_PIN_EXPIRED);
-            }
-            throw new CouponException(ErrorMessage.COUPON_PIN_ALREADY_USED);
-        }
+        String pin = generatePin();
 
-        pinHistory.markAsUsed(phoneHash);
+        CouponPinHistory pinHistory = CouponPinHistory.createForCustomer(
+                request.getStoreId(),
+                pin,
+                phoneHash
+        );
+
         pinHistoryRepository.save(pinHistory);
 
-        CouponMembership membership = membershipRepository
-                .findByStoreIdAndPhoneHash(request.getStoreId(), phoneHash)
-                .orElseGet(() -> {
-                    CouponMembership newMembership = CouponMembership.create(request.getStoreId(), phoneHash);
-                    return membershipRepository.save(newMembership);
-                });
+        log.info("고객 PIN 생성 완료: storeId={}, pin={}", request.getStoreId(), pin);
 
-        membership.addStamps(pinHistory.getStamps());
-        membershipRepository.save(membership);
-
-        log.info("스탬프 적립 완료: storeId={}, stamps={}, currentStamps={}",
-                request.getStoreId(), pinHistory.getStamps(), membership.getCurrentStamps());
-
-        return CouponEarnResponse.builder()
-                .success(true)
-                .currentStamps(membership.getCurrentStamps())
+        return CouponGeneratePinResponse.builder()
+                .pin(pin)
+                .expiredAt(pinHistory.getExpiredAt())
                 .build();
     }
 
@@ -103,7 +91,7 @@ public class CouponService {
                 .build();
     }
 
-    public CouponIssuePinResponse issuePin(Long userId, CouponIssuePinRequest request) {
+    public CouponEarnStampsByOwnerResponse earnStampsByOwner(Long userId, CouponEarnStampsByOwnerRequest request) {
         boolean hasPermission = userStoreRoleRepository
                 .findByUserIdAndStoreIdAndIsActiveTrue(userId, request.getStoreId())
                 .isPresent();
@@ -112,23 +100,37 @@ public class CouponService {
             throw new StoreException(ErrorMessage.STORE_ACCESS_DENIED);
         }
 
-        String pin = generatePin();
+        CouponPinHistory pinHistory = pinHistoryRepository
+                .findByStoreIdAndPinAndIsUsedFalse(request.getStoreId(), request.getPin())
+                .orElseThrow(() -> new CouponException(ErrorMessage.COUPON_PIN_NOT_FOUND));
 
-        CouponPinHistory pinHistory = CouponPinHistory.create(
-                request.getStoreId(),
-                pin,
-                request.getStamps()
-        );
+        if (!pinHistory.isValid()) {
+            if (pinHistory.isExpired()) {
+                throw new CouponException(ErrorMessage.COUPON_PIN_EXPIRED);
+            }
+            throw new CouponException(ErrorMessage.COUPON_PIN_ALREADY_USED);
+        }
 
+        pinHistory.confirmStamps(request.getStamps());
         pinHistoryRepository.save(pinHistory);
 
-        log.info("PIN 발급 완료: userId={}, storeId={}, pin={}, stamps={}",
-                userId, request.getStoreId(), pin, request.getStamps());
+        CouponMembership membership = membershipRepository
+                .findByStoreIdAndPhoneHash(request.getStoreId(), pinHistory.getPhoneHash())
+                .orElseGet(() -> {
+                    CouponMembership newMembership = CouponMembership.create(request.getStoreId(), pinHistory.getPhoneHash());
+                    return membershipRepository.save(newMembership);
+                });
 
-        return CouponIssuePinResponse.builder()
-                .pin(pin)
-                .stamps(pinHistory.getStamps())
-                .expiredAt(pinHistory.getExpiredAt())
+        membership.addStamps(request.getStamps());
+        membershipRepository.save(membership);
+
+        log.info("사장님 스탬프 적립 완료: userId={}, storeId={}, pin={}, stamps={}, currentStamps={}",
+                userId, request.getStoreId(), request.getPin(), request.getStamps(), membership.getCurrentStamps());
+
+        return CouponEarnStampsByOwnerResponse.builder()
+                .success(true)
+                .currentStamps(membership.getCurrentStamps())
+                .addedStamps(request.getStamps())
                 .build();
     }
 

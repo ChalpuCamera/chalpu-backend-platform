@@ -35,7 +35,7 @@ public class CouponPinHistory extends BaseTimeEntity {
     @Column(name = "pin", nullable = false, length = 2)
     private String pin;
 
-    @Column(name = "stamps", nullable = false)
+    @Column(name = "stamps")
     private Integer stamps;
 
     @Column(name = "is_used", nullable = false)
@@ -45,11 +45,12 @@ public class CouponPinHistory extends BaseTimeEntity {
     @Column(name = "expired_at", nullable = false)
     private LocalDateTime expiredAt;
 
-    public static CouponPinHistory create(Long storeId, String pin, Integer stamps) {
+    public static CouponPinHistory createForCustomer(Long storeId, String pin, String phoneHash) {
         return CouponPinHistory.builder()
                 .storeId(storeId)
                 .pin(pin)
-                .stamps(stamps)
+                .phoneHash(phoneHash)
+                .stamps(null)
                 .isUsed(false)
                 .expiredAt(LocalDateTime.now().plusMinutes(PIN_EXPIRATION_MINUTES))
                 .build();
@@ -63,14 +64,17 @@ public class CouponPinHistory extends BaseTimeEntity {
         return !this.isUsed && !isExpired();
     }
 
-    public void markAsUsed(String phoneHash) {
+    public void confirmStamps(Integer stamps) {
         if (this.isUsed) {
             throw new CouponException(ErrorMessage.COUPON_PIN_ALREADY_USED);
         }
         if (isExpired()) {
             throw new CouponException(ErrorMessage.COUPON_PIN_EXPIRED);
         }
+        if (stamps == null || stamps <= 0) {
+            throw new IllegalArgumentException("스탬프 수는 1개 이상이어야 합니다");
+        }
+        this.stamps = stamps;
         this.isUsed = true;
-        this.phoneHash = phoneHash;
     }
 }

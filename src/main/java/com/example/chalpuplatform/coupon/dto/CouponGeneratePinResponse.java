@@ -12,15 +12,12 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Schema(description = "쿠폰 PIN 발급 응답")
-public class CouponIssuePinResponse {
+@Schema(description = "고객용 PIN 생성 응답")
+public class CouponGeneratePinResponse {
 
-    @Schema(description = "발급된 PIN", example = "47")
+    @Schema(description = "생성된 PIN (2자리)", example = "47")
     private String pin;
 
-    @Schema(description = "스탬프 개수", example = "2")
-    private Integer stamps;
-
-    @Schema(description = "만료 시간")
+    @Schema(description = "만료 시간", example = "2025-10-20T15:23:00")
     private LocalDateTime expiredAt;
 }

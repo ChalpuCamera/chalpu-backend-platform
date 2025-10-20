@@ -8,15 +8,15 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "쿠폰 스탬프 적립 요청")
-public class CouponEarnRequest {
+@Schema(description = "사장님용 스탬프 적립 요청")
+public class CouponEarnStampsByOwnerRequest {
 
     @Schema(description = "매장 ID", example = "1")
     private Long storeId;
 
-    @Schema(description = "전화번호", example = "010-1234-5678")
-    private String phone;
-
-    @Schema(description = "PIN 번호", example = "47")
+    @Schema(description = "고객이 생성한 PIN", example = "47")
     private String pin;
+
+    @Schema(description = "적립할 스탬프 개수", example = "2")
+    private Integer stamps;
 }

@@ -1,8 +1,8 @@
 package com.example.chalpuplatform.coupon.controller;
 
 import com.example.chalpuplatform.common.response.ApiResponse;
-import com.example.chalpuplatform.coupon.dto.CouponIssuePinRequest;
-import com.example.chalpuplatform.coupon.dto.CouponIssuePinResponse;
+import com.example.chalpuplatform.coupon.dto.CouponEarnStampsByOwnerRequest;
+import com.example.chalpuplatform.coupon.dto.CouponEarnStampsByOwnerResponse;
 import com.example.chalpuplatform.coupon.service.CouponService;
 import com.example.chalpuplatform.oauth.jwt.UserDetailsImpl;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,22 +29,26 @@ public class CouponOwnerController {
 
     private final CouponService couponService;
 
-    @PostMapping("/issue-pin")
+    @PostMapping("/earn-stamps")
     @PreAuthorize("hasRole('OWNER')")
     @Operation(
-        summary = "PIN 발급",
-        description = "고객에게 지급할 스탬프 개수를 설정하고 PIN을 발급합니다. 발급된 PIN은 3분간 유효합니다."
+        summary = "스탬프 적립",
+        description = "고객이 생성한 PIN을 입력하고 스탬프 개수를 설정하여 적립합니다. PIN은 3분간 유효합니다."
     )
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "PIN 발급 성공",
+            description = "스탬프 적립 성공",
             content = @Content(
                 mediaType = "application/json",
                 examples = @ExampleObject(
-                    value = "{\"code\": 200, \"message\": \"API 요청이 성공했습니다.\", \"result\": {\"pin\": \"47\", \"stamps\": 2, \"expiredAt\": \"2024-01-01T10:03:00\"}}"
+                    value = "{\"code\": 200, \"message\": \"API 요청이 성공했습니다.\", \"result\": {\"success\": true, \"currentStamps\": 7, \"addedStamps\": 2}}"
                 )
             )
+        ),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "400",
+            description = "잘못된 요청 (만료된 PIN, 이미 사용된 PIN 등)"
         ),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "401",
@@ -53,24 +57,28 @@ public class CouponOwnerController {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "403",
             description = "해당 매장에 대한 권한이 없습니다"
+        ),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "404",
+            description = "유효하지 않은 PIN"
         )
     })
-    public ResponseEntity<ApiResponse<CouponIssuePinResponse>> issuePin(
+    public ResponseEntity<ApiResponse<CouponEarnStampsByOwnerResponse>> earnStamps(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                description = "PIN 발급 요청",
+                description = "스탬프 적립 요청",
                 required = true,
                 content = @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = CouponIssuePinRequest.class),
+                    schema = @Schema(implementation = CouponEarnStampsByOwnerRequest.class),
                     examples = @ExampleObject(
-                        value = "{\"storeId\": 1, \"stamps\": 2}"
+                        value = "{\"storeId\": 1, \"pin\": \"47\", \"stamps\": 2}"
                     )
                 )
             )
-            @RequestBody CouponIssuePinRequest request) {
+            @RequestBody CouponEarnStampsByOwnerRequest request) {
 
-        CouponIssuePinResponse response = couponService.issuePin(userDetails.getId(), request);
+        CouponEarnStampsByOwnerResponse response = couponService.earnStampsByOwner(userDetails.getId(), request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }
