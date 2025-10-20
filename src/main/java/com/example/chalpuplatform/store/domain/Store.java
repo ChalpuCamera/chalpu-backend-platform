@@ -95,7 +95,7 @@ public class Store extends BaseTimeEntity {
         this.deliveryPlatformLinks.setInstagramLink(storeRequest.getInstagramLink());
         this.deliveryPlatformLinks.setKakaoTalkLink(storeRequest.getKakaoTalkLink());
         this.deliveryPlatformLinks.setSiteLink(storeRequest.getSiteLink());
-        this.requiredStampsForCoupon = storeRequest.getRequiredStampsForCoupon();
+        this.requiredStampsForCoupon = storeRequest.getRequiredStampsForCoupon() != null ? storeRequest.getRequiredStampsForCoupon() : this.requiredStampsForCoupon;
     }
 
     public void softDelete() {
