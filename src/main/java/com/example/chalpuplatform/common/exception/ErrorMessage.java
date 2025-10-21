@@ -220,7 +220,19 @@ public enum ErrorMessage {
     COUPON_INSUFFICIENT_STAMPS(BAD_REQUEST, "스탬프가 부족합니다."),
     COUPON_MEMBERSHIP_NOT_FOUND(NOT_FOUND, "쿠폰 멤버십을 찾을 수 없습니다."),
     COUPON_INVALID_PHONE_NUMBER(BAD_REQUEST, "유효하지 않은 전화번호입니다."),
-    COUPON_INVALID_STAMPS_COUNT(BAD_REQUEST, "스탬프 수는 1개 이상이어야 합니다.");
+    COUPON_INVALID_STAMPS_COUNT(BAD_REQUEST, "스탬프 수는 1개 이상이어야 합니다."),
+
+    // 구독 관련 에러
+    SUBSCRIPTION_ALREADY_UNSUBSCRIBED(BAD_REQUEST, "이미 구독 취소된 상태입니다."),
+    SUBSCRIPTION_ALREADY_ACTIVE(BAD_REQUEST, "이미 구독 중입니다."),
+    SUBSCRIPTION_NOT_ACTIVE(BAD_REQUEST, "활성화된 구독이 아닙니다."),
+    SUBSCRIPTION_NOT_FOUND(NOT_FOUND, "구독 정보를 찾을 수 없습니다."),
+    NOTIFICATION_ALREADY_ENABLED(BAD_REQUEST, "알림이 이미 활성화되어 있습니다."),
+    NOTIFICATION_ALREADY_DISABLED(BAD_REQUEST, "알림이 이미 비활성화되어 있습니다."),
+    NO_SUBSCRIBERS(BAD_REQUEST, "구독자가 없습니다."),
+    NO_FCM_TOKENS(BAD_REQUEST, "발송 가능한 FCM 토큰이 없습니다."),
+    NOTIFICATION_INVALID_STATUS(BAD_REQUEST, "유효하지 않은 알림 상태입니다."),
+    STORE_PERMISSION_DENIED(FORBIDDEN, "매장 권한이 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
