@@ -42,6 +42,9 @@ public class FCMToken extends BaseTimeEntity {
     @Column(name = "is_allowed", nullable = false)
     private Boolean isAllowed = true;
 
+    @Column(name = "last_used_at")
+    private java.time.LocalDateTime lastUsedAt;
+
     public static FCMToken create(User user, String fcmToken, DeviceType deviceType,
                                    String deviceModel, String osVersion,
                                    String appVersion, Boolean isAllowed) {
@@ -66,5 +69,13 @@ public class FCMToken extends BaseTimeEntity {
         if (isAllowed != null) {
             this.isAllowed = isAllowed;
         }
+    }
+
+    public void deactivate() {
+        this.isAllowed = false;
+    }
+
+    public void updateLastUsed() {
+        this.lastUsedAt = java.time.LocalDateTime.now();
     }
 }
