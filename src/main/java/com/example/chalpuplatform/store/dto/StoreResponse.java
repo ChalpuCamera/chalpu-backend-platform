@@ -46,6 +46,15 @@ public class StoreResponse {
     @Schema(description = "카카오톡 채널 링크", example = "https://pf.kakao.com/_store")
     private String kakaoTalkLink;
 
+    @Schema(description ="구글맵 링크", example = "https://maps.google.com/?q=37.5665,126.9780")
+    private String googleMapsLink;
+
+    @Schema(description="땡겨요 링크", example = "https://ddangyo.com/store/12345")
+    private String ddangyoLink;
+
+    @Schema(description = "당근 링크", example = "https://daangn.com/store/12345")
+    private String daangnLink;
+
     @Schema(description = "사이트 링크 (URL 경로용)", example = "우리집냉면")
     private String siteLink;
 
@@ -89,6 +98,12 @@ public class StoreResponse {
                         ? store.getDeliveryPlatformLinks().getKakaoTalkLink() : "")
                 .siteLink(store.getDeliveryPlatformLinks() != null && store.getDeliveryPlatformLinks().getSiteLink() != null
                         ? store.getDeliveryPlatformLinks().getSiteLink() : "")
+                .googleMapsLink(store.getDeliveryPlatformLinks() != null && store.getDeliveryPlatformLinks().getGoogleMapsLink() != null
+                        ? store.getDeliveryPlatformLinks().getGoogleMapsLink() : "")
+                .ddangyoLink(store.getDeliveryPlatformLinks() != null && store.getDeliveryPlatformLinks().getDdangyoLink() != null
+                        ? store.getDeliveryPlatformLinks().getDdangyoLink() : "")
+                .daangnLink(store.getDeliveryPlatformLinks() != null && store.getDeliveryPlatformLinks().getDaangnLink() != null
+                        ? store.getDeliveryPlatformLinks().getDaangnLink() : "")
                 .requiredStampsForCoupon(store.getRequiredStampsForCoupon())
                 .build();
     }

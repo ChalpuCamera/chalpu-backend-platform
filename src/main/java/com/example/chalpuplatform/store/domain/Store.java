@@ -95,6 +95,9 @@ public class Store extends BaseTimeEntity {
         this.deliveryPlatformLinks.setInstagramLink(storeRequest.getInstagramLink());
         this.deliveryPlatformLinks.setKakaoTalkLink(storeRequest.getKakaoTalkLink());
         this.deliveryPlatformLinks.setSiteLink(storeRequest.getSiteLink());
+        this.deliveryPlatformLinks.setGoogleMapsLink(storeRequest.getGoogleMapsLink());
+        this.deliveryPlatformLinks.setDdangyoLink(storeRequest.getDdangyoLink());
+        this.deliveryPlatformLinks.setDaangnLink(storeRequest.getDaangnLink());
         this.requiredStampsForCoupon = storeRequest.getRequiredStampsForCoupon() != null ? storeRequest.getRequiredStampsForCoupon() : this.requiredStampsForCoupon;
     }
 

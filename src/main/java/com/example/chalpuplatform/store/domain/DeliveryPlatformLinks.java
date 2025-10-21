@@ -33,6 +33,15 @@ public class DeliveryPlatformLinks {
     @Column(name = "kakao_talk_link", length = 255, nullable = true)
     private String kakaoTalkLink;
 
+    @Column(name ="google_maps_link", length = 255, nullable = true)
+    private String googleMapsLink;
+
+    @Column(name="ddangyo_link", length = 255, nullable = true)
+    private String ddangyoLink;
+
+    @Column(name = "daangn_link", length = 255, nullable = true)
+    private String daangnLink;
+
     @Column(name = "site_link", length = 255, nullable = true)
     private String siteLink;
 }
