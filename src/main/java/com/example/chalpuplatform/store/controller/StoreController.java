@@ -103,7 +103,7 @@ public class StoreController {
         if (!userStoreRoleService.canUserManageStore(userDetails.getId(), storeId)) {
             throw new StoreException(ErrorMessage.STORE_ACCESS_DENIED);
         }
-        
+
         StoreResponse store = storeService.updateStore(storeId, storeRequest);
         return ResponseEntity.ok(ApiResponse.success(store));
     }

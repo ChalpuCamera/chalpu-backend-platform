@@ -68,7 +68,7 @@ public class StoreService {
         try {
             Store store = storeRepository.findByIdAndIsActiveTrue(storeId)
                     .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
-            
+
             store.updateStore(storeRequest);
             log.info("event=store_updated, store_id={}", storeId);
             return StoreResponse.from(store);
