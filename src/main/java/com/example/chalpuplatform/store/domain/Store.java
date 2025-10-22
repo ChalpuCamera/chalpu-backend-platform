@@ -54,6 +54,10 @@ public class Store extends BaseTimeEntity {
 
     @Embedded
     private DeliveryPlatformLinks deliveryPlatformLinks;
+
+    @Builder.Default
+    @Column(name = "display_template",nullable = false)
+    private Integer displayTemplate = 1;
     
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
     @BatchSize(size = 50)
@@ -99,6 +103,7 @@ public class Store extends BaseTimeEntity {
         this.deliveryPlatformLinks.setDdangyoLink(storeRequest.getDdangyoLink());
         this.deliveryPlatformLinks.setDaangnLink(storeRequest.getDaangnLink());
         this.requiredStampsForCoupon = storeRequest.getRequiredStampsForCoupon() != null ? storeRequest.getRequiredStampsForCoupon() : this.requiredStampsForCoupon;
+        this.displayTemplate = storeRequest.getDisplayTemplate() != null ? storeRequest.getDisplayTemplate() : this.displayTemplate;
     }
 
     public void softDelete() {

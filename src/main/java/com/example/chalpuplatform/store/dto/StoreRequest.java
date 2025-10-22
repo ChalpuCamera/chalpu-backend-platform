@@ -58,4 +58,7 @@ public class StoreRequest {
 
     @Schema(description = "쿠폰 사용 개수", example = "10", required = false)
     private Integer requiredStampsForCoupon;
+
+    @Schema(description = "템플릿 유형", example = "1", required = false)
+    private Integer displayTemplate;
 } 

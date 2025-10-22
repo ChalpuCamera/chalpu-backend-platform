@@ -73,6 +73,9 @@ public class StoreResponse {
     @Schema(description = "쿠폰 사용 개수", example = "10", required = false)
     private Integer requiredStampsForCoupon;
 
+    @Schema(description = "템플릿 유형", example = "1", required = false)
+    private Integer displayTemplate;
+
     public static StoreResponse from(Store store) {
         return StoreResponse.builder()
                 .storeId(store.getId())
@@ -105,6 +108,7 @@ public class StoreResponse {
                 .daangnLink(store.getDeliveryPlatformLinks() != null && store.getDeliveryPlatformLinks().getDaangnLink() != null
                         ? store.getDeliveryPlatformLinks().getDaangnLink() : "")
                 .requiredStampsForCoupon(store.getRequiredStampsForCoupon())
+                .displayTemplate(store.getDisplayTemplate() != null ? store.getDisplayTemplate() : 1)
                 .build();
     }
 } 
