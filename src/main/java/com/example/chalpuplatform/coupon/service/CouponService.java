@@ -96,6 +96,8 @@ public class CouponService {
                 .findByUserIdAndStoreIdAndIsActiveTrue(userId, request.getStoreId())
                 .isPresent();
 
+        log.info("userID: {} and storeid: {}",userId,request.getStoreId());
+
         if (!hasPermission) {
             throw new StoreException(ErrorMessage.STORE_ACCESS_DENIED);
         }
