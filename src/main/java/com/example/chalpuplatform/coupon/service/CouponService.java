@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -134,6 +135,20 @@ public class CouponService {
                 .currentStamps(membership.getCurrentStamps())
                 .addedStamps(request.getStamps())
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public PinStatusResponse checkPinStatus(Long storeId, String phone, String pin) {
+        String phoneHash = PhoneHashUtil.normalizeAndHash(phone);
+
+        CouponPinHistory pinHistory = pinHistoryRepository
+                .findLatestByStoreIdAndPhoneHashAndPin(storeId, phoneHash, pin)
+                .orElseThrow(() -> new CouponException(ErrorMessage.COUPON_PIN_NOT_FOUND));
+
+        log.debug("PIN 상태 조회: storeId={}, pin={}, isUsed={}, isExpired={}",
+                storeId, pin, pinHistory.getIsUsed(), pinHistory.isExpired());
+
+        return PinStatusResponse.from(pinHistory);
     }
 
     private String generatePin() {
