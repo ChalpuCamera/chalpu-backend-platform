@@ -221,6 +221,7 @@ public enum ErrorMessage {
     COUPON_MEMBERSHIP_NOT_FOUND(NOT_FOUND, "쿠폰 멤버십을 찾을 수 없습니다."),
     COUPON_INVALID_PHONE_NUMBER(BAD_REQUEST, "유효하지 않은 전화번호입니다."),
     COUPON_INVALID_STAMPS_COUNT(BAD_REQUEST, "스탬프 수는 1개 이상이어야 합니다."),
+    COUPON_PIN_NOT_USED(BAD_REQUEST, "아직 사용되지 않은 pin입니다."),
 
     // 구독 관련 에러
     SUBSCRIPTION_ALREADY_UNSUBSCRIBED(BAD_REQUEST, "이미 구독 취소된 상태입니다."),

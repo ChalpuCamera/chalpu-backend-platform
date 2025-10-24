@@ -138,4 +138,21 @@ public class CouponController {
         CouponRedeemResponse response = couponService.redeemCoupon(request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+    @GetMapping("/pin-status")
+    @Operation(
+        summary = "PIN 사용 여부 조회",
+        description = "고객이 생성한 PIN의 사용 여부와 만료 상태를 조회합니다. 사장님이 스탬프를 적립하면 isUsed가 true로 변경됩니다."
+    )
+    public ResponseEntity<ApiResponse<PinStatusResponse>> checkPinStatus(
+            @Parameter(description = "매장 ID", required = true)
+            @RequestParam("storeId") Long storeId,
+            @Parameter(description = "전화번호 (010-1234-5678 또는 01012345678)", required = true)
+            @RequestParam("phone") String phone,
+            @Parameter(description = "PIN 번호 (2자리)", required = true)
+            @RequestParam("pin") String pin) {
+
+        PinStatusResponse response = couponService.checkPinStatus(storeId, phone, pin);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 }

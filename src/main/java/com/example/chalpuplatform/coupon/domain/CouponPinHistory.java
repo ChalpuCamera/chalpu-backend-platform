@@ -11,7 +11,8 @@ import java.time.LocalDateTime;
 @Entity
 @Table(
     name = "coupon_pin_histories",
-    indexes = @Index(name = "idx_store_pin", columnList = "store_id, pin")
+    indexes = @Index(name = "idx_store_pin_phone_created",
+                     columnList = "store_id, pin, phone_hash, created_at")
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
