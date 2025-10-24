@@ -76,6 +76,9 @@ public class StoreResponse {
     @Schema(description = "템플릿 유형", example = "1", required = false)
     private Integer displayTemplate;
 
+    @Schema(description = "사장님의 메뉴가 자동으로 자신의 가게에 등록되는 기능 on/off")
+    private Boolean autoCreateMenus;
+
     public static StoreResponse from(Store store) {
         return StoreResponse.builder()
                 .storeId(store.getId())
@@ -109,6 +112,7 @@ public class StoreResponse {
                         ? store.getDeliveryPlatformLinks().getDaangnLink() : "")
                 .requiredStampsForCoupon(store.getRequiredStampsForCoupon())
                 .displayTemplate(store.getDisplayTemplate() != null ? store.getDisplayTemplate() : 1)
+                .autoCreateMenus(store.getAutoCreateMenus() != null ? store.getAutoCreateMenus() : false)
                 .build();
     }
 } 

@@ -65,6 +65,10 @@ public class Store extends BaseTimeEntity {
     @JsonManagedReference
     private List<FoodItem> foodItems = new ArrayList<>();
 
+    @Column(name = "auto_create_menus")
+    @Builder.Default
+    private Boolean autoCreateMenus = false;
+
     public static Store createStore(StoreRequest storeRequest){
         return Store.builder()
                 .storeName(storeRequest.getStoreName())
@@ -104,6 +108,7 @@ public class Store extends BaseTimeEntity {
         this.deliveryPlatformLinks.setDaangnLink(storeRequest.getDaangnLink());
         this.requiredStampsForCoupon = storeRequest.getRequiredStampsForCoupon() != null ? storeRequest.getRequiredStampsForCoupon() : this.requiredStampsForCoupon;
         this.displayTemplate = storeRequest.getDisplayTemplate() != null ? storeRequest.getDisplayTemplate() : this.displayTemplate;
+        this.autoCreateMenus = storeRequest.getAutoCreateMenus() != null ? storeRequest.getAutoCreateMenus() : false;
     }
 
     public void softDelete() {
