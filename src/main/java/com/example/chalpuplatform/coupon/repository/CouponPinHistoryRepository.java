@@ -15,8 +15,8 @@ public interface CouponPinHistoryRepository extends JpaRepository<CouponPinHisto
 
     @Query("SELECT p FROM CouponPinHistory p " +
            "WHERE p.storeId = :storeId " +
-           "AND p.phoneHash = :phoneHash " +
            "AND p.pin = :pin " +
+           "AND p.phoneHash = :phoneHash " +
            "ORDER BY p.createdAt DESC " +
            "LIMIT 1")
     Optional<CouponPinHistory> findLatestByStoreIdAndPhoneHashAndPin(
