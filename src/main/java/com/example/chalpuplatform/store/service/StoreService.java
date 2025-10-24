@@ -70,9 +70,11 @@ public class StoreService {
                     .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
 
             if (storeRequest.getSiteLink() != null && !storeRequest.getSiteLink().isEmpty()) {
-                Optional<Store> existingSiteLink = storeRepository.findBySiteLink(storeRequest.getSiteLink());
-                if (existingSiteLink.isPresent()) {
-                    throw new StoreException(ErrorMessage.SITE_LINK_ALREADY_EXISTS);
+                if (!store.getDeliveryPlatformLinks().getSiteLink().equals(storeRequest.getSiteLink())) {
+                    Optional<Store> existingSiteLink = storeRepository.findBySiteLink(storeRequest.getSiteLink());
+                    if (existingSiteLink.isPresent()) {
+                        throw new StoreException(ErrorMessage.SITE_LINK_ALREADY_EXISTS);
+                    }
                 }
             }
 
