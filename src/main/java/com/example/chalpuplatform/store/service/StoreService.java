@@ -69,6 +69,13 @@ public class StoreService {
             Store store = storeRepository.findByIdAndIsActiveTrue(storeId)
                     .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
 
+            if (storeRequest.getSiteLink() != null && !storeRequest.getSiteLink().isEmpty()) {
+                Optional<Store> existingSiteLink = storeRepository.findBySiteLink(storeRequest.getSiteLink());
+                if (existingSiteLink.isPresent()) {
+                    throw new StoreException(ErrorMessage.SITE_LINK_ALREADY_EXISTS);
+                }
+            }
+
             store.updateStore(storeRequest);
             log.info("event=store_updated, store_id={}", storeId);
             return StoreResponse.from(store);
