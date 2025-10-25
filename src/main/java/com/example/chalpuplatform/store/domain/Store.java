@@ -48,74 +48,82 @@ public class Store extends BaseTimeEntity {
     @Column(name = "thumbnail_url")
     private String thumbnailUrl;
 
+    @Column(name = "site_link", unique = true, nullable = false, length = 100)
+    private String siteLink;
+
     @Builder.Default
     @Column(name = "required_stamps_for_coupon", nullable = false)
     private Integer requiredStampsForCoupon = 10;
 
-    @Embedded
-    private DeliveryPlatformLinks deliveryPlatformLinks;
-
     @Builder.Default
     @Column(name = "display_template",nullable = false)
     private Integer displayTemplate = 1;
-    
+
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
     @BatchSize(size = 50)
     @Builder.Default
     @JsonManagedReference
     private List<FoodItem> foodItems = new ArrayList<>();
 
+    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<StoreLink> links = new ArrayList<>();
+
     @Column(name = "auto_create_menus")
     @Builder.Default
     private Boolean autoCreateMenus = false;
 
     public static Store createStore(StoreRequest storeRequest){
-        return Store.builder()
+        Store store = Store.builder()
                 .storeName(storeRequest.getStoreName())
                 .address(storeRequest.getAddress())
                 .description(storeRequest.getDescription())
-                .deliveryPlatformLinks(DeliveryPlatformLinks.builder()
-                        .baeminLink(storeRequest.getBaeminLink())
-                        .yogiyoLink(storeRequest.getYogiyoLink())
-                        .coupangeatsLink(storeRequest.getCoupangeatsLink())
-                        .naverLink(storeRequest.getNaverLink())
-                        .kakaoLink(storeRequest.getKakaoLink())
-                        .instagramLink(storeRequest.getInstagramLink())
-                        .kakaoTalkLink(storeRequest.getKakaoTalkLink())
-                        .siteLink(storeRequest.getSiteLink())
-                        .build())
+                .siteLink(storeRequest.getSiteLink())
                 .build();
+
+        if (storeRequest.getLinks() != null && !storeRequest.getLinks().isEmpty()) {
+            for (int i = 0; i < storeRequest.getLinks().size(); i++) {
+                StoreLink link = StoreLink.create(
+                        store,
+                        storeRequest.getLinks().get(i).getLinkType(),
+                        storeRequest.getLinks().get(i).getCustomLabel(),
+                        storeRequest.getLinks().get(i).getUrl(),
+                        i
+                );
+                store.getLinks().add(link);
+            }
+        }
+
+        return store;
     }
 
     public void updateStore(StoreRequest storeRequest) {
         this.storeName = storeRequest.getStoreName();
         this.address = storeRequest.getAddress();
         this.description = storeRequest.getDescription();
-
-        if (this.deliveryPlatformLinks == null) {
-            this.deliveryPlatformLinks = new DeliveryPlatformLinks();
-        }
-        this.deliveryPlatformLinks.setBaeminLink(storeRequest.getBaeminLink());
-        this.deliveryPlatformLinks.setYogiyoLink(storeRequest.getYogiyoLink());
-        this.deliveryPlatformLinks.setCoupangeatsLink(storeRequest.getCoupangeatsLink());
-        this.deliveryPlatformLinks.setNaverLink(storeRequest.getNaverLink());
-        this.deliveryPlatformLinks.setKakaoLink(storeRequest.getKakaoLink());
-        this.deliveryPlatformLinks.setInstagramLink(storeRequest.getInstagramLink());
-        this.deliveryPlatformLinks.setKakaoTalkLink(storeRequest.getKakaoTalkLink());
-        this.deliveryPlatformLinks.setSiteLink(storeRequest.getSiteLink());
-        this.deliveryPlatformLinks.setGoogleMapsLink(storeRequest.getGoogleMapsLink());
-        this.deliveryPlatformLinks.setDdangyoLink(storeRequest.getDdangyoLink());
-        this.deliveryPlatformLinks.setDaangnLink(storeRequest.getDaangnLink());
+        this.siteLink = storeRequest.getSiteLink();
         this.requiredStampsForCoupon = storeRequest.getRequiredStampsForCoupon() != null ? storeRequest.getRequiredStampsForCoupon() : this.requiredStampsForCoupon;
         this.displayTemplate = storeRequest.getDisplayTemplate() != null ? storeRequest.getDisplayTemplate() : this.displayTemplate;
         this.autoCreateMenus = storeRequest.getAutoCreateMenus() != null ? storeRequest.getAutoCreateMenus() : false;
+
+        if (storeRequest.getLinks() != null) {
+            this.links.clear();
+
+            for (int i = 0; i < storeRequest.getLinks().size(); i++) {
+                StoreLink link = StoreLink.create(
+                        this,
+                        storeRequest.getLinks().get(i).getLinkType(),
+                        storeRequest.getLinks().get(i).getCustomLabel(),
+                        storeRequest.getLinks().get(i).getUrl(),
+                        i
+                );
+                this.links.add(link);
+            }
+        }
     }
 
     public void softDelete() {
         this.isActive = false;
-        if (this.deliveryPlatformLinks != null) {
-            this.deliveryPlatformLinks.setSiteLink(null);
-        }
     }
 
     public void setThumbnailUrl(String thumbnailUrl) {
