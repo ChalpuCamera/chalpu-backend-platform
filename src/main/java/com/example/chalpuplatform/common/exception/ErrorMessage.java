@@ -65,6 +65,7 @@ public enum ErrorMessage {
     STORE_OWNER_CANNOT_LEAVE(FORBIDDEN, "소유자는 탈퇴할 수 없습니다. 매장을 다른 사람에게 양도하거나 삭제해야 합니다."),
     STORE_NAME_ALREADY_EXISTS(BAD_REQUEST, "이미 존재하는 매장 이름입니다."),
     SITE_LINK_ALREADY_EXISTS(BAD_REQUEST, "이미 사용 중인 사이트 링크입니다."),
+    SITE_CANNOT_NULL(BAD_REQUEST, "사이트 링크는 null일 수 없습니다."),
 
     // 메뉴 관련 에러
     MENU_NOT_FOUND(NOT_FOUND, "메뉴를 찾을 수 없습니다."),
@@ -233,7 +234,8 @@ public enum ErrorMessage {
     NO_SUBSCRIBERS(BAD_REQUEST, "구독자가 없습니다."),
     NO_FCM_TOKENS(BAD_REQUEST, "발송 가능한 FCM 토큰이 없습니다."),
     NOTIFICATION_INVALID_STATUS(BAD_REQUEST, "유효하지 않은 알림 상태입니다."),
-    STORE_PERMISSION_DENIED(FORBIDDEN, "매장 권한이 없습니다.");
+    STORE_PERMISSION_DENIED(FORBIDDEN, "매장 권한이 없습니다."),
+    INVALID_INPUT_VALUE(BAD_REQUEST, "커스텀 링크에는 라벨이 있어야 합니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

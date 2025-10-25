@@ -23,9 +23,6 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
     @Query("UPDATE Store s SET s.feedbackCount = s.feedbackCount + 1 WHERE s.id = :storeId")
     void incrementFeedbackCount(@Param("storeId") Long storeId);
 
-    @Modifying
-    @Query("UPDATE Store s SET s.feedbackCount = s.feedbackCount - 1 WHERE s.id = :storeId AND s.feedbackCount > 0")
-    void decrementFeedbackCount(@Param("storeId") Long storeId);
 
     @Modifying
     @Query("UPDATE Store s SET s.menuCount = s.menuCount + 1 WHERE s.id = :storeId")
@@ -35,8 +32,5 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
     @Query("UPDATE Store s SET s.menuCount = s.menuCount - 1 WHERE s.id = :storeId AND s.menuCount > 0")
     void decrementMenuCount(@Param("storeId") Long storeId);
 
-    Optional<Store> findByStoreName(String storeName);
-
-    @Query("SELECT s FROM Store s WHERE s.deliveryPlatformLinks.siteLink = :siteLink")
-    Optional<Store> findBySiteLink(@Param("siteLink") String siteLink);
+    Optional<Store> findBySiteLink(String siteLink);
 }

@@ -44,16 +44,19 @@ public class StoreService {
 
     public StoreResponse createStore(StoreRequest storeRequest) {
         try {
-            if (storeRequest.getSiteLink() != null && !storeRequest.getSiteLink().isEmpty()) {
-                Optional<Store> existingSiteLink = storeRepository.findBySiteLink(storeRequest.getSiteLink());
-                if (existingSiteLink.isPresent()) {
-                    throw new StoreException(ErrorMessage.SITE_LINK_ALREADY_EXISTS);
-                }
+            if (storeRequest.getSiteLink() == null) {
+                throw new StoreException(ErrorMessage.SITE_CANNOT_NULL);
             }
+
+            storeRepository.findBySiteLink(storeRequest.getSiteLink())
+                    .ifPresent(store -> {throw new StoreException(ErrorMessage.SITE_LINK_ALREADY_EXISTS);});
 
             Store store = Store.createStore(storeRequest);
             Store savedStore = storeRepository.save(store);
-            log.info("event=store_created, store_id={}", savedStore.getId());
+
+            log.info("event=store_created, store_id={}, links_count={}",
+                    savedStore.getId(),
+                    storeRequest.getLinks() != null ? storeRequest.getLinks().size() : 0);
             return StoreResponse.from(savedStore);
         } catch (StoreException e) {
             throw e;
@@ -66,25 +69,28 @@ public class StoreService {
 
     public StoreResponse updateStore(Long storeId, StoreRequest storeRequest) {
         try {
+            if (storeRequest.getSiteLink() == null) {
+                throw new StoreException(ErrorMessage.SITE_CANNOT_NULL);
+            }
+
             Store store = storeRepository.findByIdAndIsActiveTrue(storeId)
                     .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
 
-            if (storeRequest.getSiteLink() != null && !storeRequest.getSiteLink().isEmpty()) {
-                if (!store.getDeliveryPlatformLinks().getSiteLink().equals(storeRequest.getSiteLink())) {
-                    Optional<Store> existingSiteLink = storeRepository.findBySiteLink(storeRequest.getSiteLink());
-                    if (existingSiteLink.isPresent()) {
-                        throw new StoreException(ErrorMessage.SITE_LINK_ALREADY_EXISTS);
-                    }
+            if (!store.getSiteLink().equals(storeRequest.getSiteLink())) {
+                if (storeRepository.findBySiteLink(storeRequest.getSiteLink()).isPresent()) {
+                    throw new StoreException(ErrorMessage.SITE_LINK_ALREADY_EXISTS);
                 }
             }
 
             store.updateStore(storeRequest);
-            log.info("event=store_updated, store_id={}", storeId);
+
+            log.info("event=store_updated, store_id={}, links_updated={}",
+                    storeId, storeRequest.getLinks() != null);
             return StoreResponse.from(store);
         } catch (Exception e) {
             log.error("event=store_update_failed, store_id={}, error_message={}",
                     storeId, e.getMessage(), e);
-            throw new StoreException(ErrorMessage.STORE_UPDATE_FAILED);
+            throw e;
         }
     }
 
