@@ -34,15 +34,19 @@ public class StoreLink extends BaseTimeEntity {
     @Column(name = "url", length = 500, nullable = false)
     private String url;
 
+    @Column(name = "is_visible",length = 10)
+    private Boolean isVisible;
+
     @Column(name = "display_order", nullable = false)
     private Integer displayOrder;
 
-    public static StoreLink create(Store store, LinkType linkType, String label, String url, Integer displayOrder) {
+    public static StoreLink create(Store store, LinkType linkType, String label, String url, Boolean isVisible,Integer displayOrder) {
         return StoreLink.builder()
                 .store(store)
                 .linkType(linkType)
                 .Label(label)
                 .url(url)
+                .isVisible(isVisible)
                 .displayOrder(displayOrder)
                 .build();
     }
