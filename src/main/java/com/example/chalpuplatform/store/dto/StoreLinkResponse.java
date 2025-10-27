@@ -25,14 +25,14 @@ public class StoreLinkResponse {
     private String url;
 
     @Schema(description = "링크가 보이냐 마냐의 is_visible",example = "true")
-    private Boolean is_visible;
+    private Boolean isVisible;
 
     public static StoreLinkResponse from(StoreLink storeLink) {
         return StoreLinkResponse.builder()
                 .linkType(storeLink.getLinkType())
                 .label(storeLink.getLabel())
                 .url(storeLink.getUrl())
-                .is_visible(storeLink.getIsVisible())
+                .isVisible(storeLink.getIsVisible())
                 .build();
     }
 }

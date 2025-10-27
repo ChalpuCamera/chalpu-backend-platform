@@ -88,7 +88,7 @@ public class Store extends BaseTimeEntity {
                         storeRequest.getLinks().get(i).getLinkType(),
                         storeRequest.getLinks().get(i).getCustomLabel(),
                         storeRequest.getLinks().get(i).getUrl(),
-                        storeRequest.getLinks().get(i).getIs_visible(),
+                        storeRequest.getLinks().get(i).getIsVisible(),
                         i
                 );
                 store.getLinks().add(link);
@@ -116,7 +116,7 @@ public class Store extends BaseTimeEntity {
                         storeRequest.getLinks().get(i).getLinkType(),
                         storeRequest.getLinks().get(i).getCustomLabel(),
                         storeRequest.getLinks().get(i).getUrl(),
-                        storeRequest.getLinks().get(i).getIs_visible(),
+                        storeRequest.getLinks().get(i).getIsVisible(),
                         i
                 );
                 this.links.add(link);
