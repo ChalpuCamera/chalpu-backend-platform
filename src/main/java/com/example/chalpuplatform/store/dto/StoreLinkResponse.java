@@ -24,11 +24,15 @@ public class StoreLinkResponse {
     @Schema(description = "URL", example = "https://baemin.com/store/12345")
     private String url;
 
+    @Schema(description = "링크가 보이냐 마냐의 is_visible",example = "true")
+    private Boolean is_visible;
+
     public static StoreLinkResponse from(StoreLink storeLink) {
         return StoreLinkResponse.builder()
                 .linkType(storeLink.getLinkType())
                 .label(storeLink.getLabel())
                 .url(storeLink.getUrl())
+                .is_visible(storeLink.getIsVisible())
                 .build();
     }
 }

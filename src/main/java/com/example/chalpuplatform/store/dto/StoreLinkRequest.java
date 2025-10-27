@@ -24,4 +24,7 @@ public class StoreLinkRequest {
 
     @Schema(description = "URL", example = "https://example.com", required = true)
     private String url;
+
+    @Schema(description = "링크가 보이냐 마냐의 is_visible",example = "true")
+    private Boolean is_visible;
 }
