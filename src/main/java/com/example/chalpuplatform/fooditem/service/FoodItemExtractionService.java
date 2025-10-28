@@ -149,12 +149,16 @@ public class FoodItemExtractionService {
             List<Map<String, Object>> items = (List<Map<String, Object>>) response.get("items");
 
             return items.stream()
-                    .map(item -> ExtractedFoodItemDto.builder()
-                            .name((String) item.get("name"))
-                            .price(((Number) item.get("price")).intValue())
-                            .description((String) item.get("description"))
-                            .category(mapToFoodCategory((String) item.get("category")))
-                            .build())
+                    .filter(item -> item.get("name") != null )
+                    .map(item -> {
+                        Number priceValue = (Number) item.get("price");
+                        return ExtractedFoodItemDto.builder()
+                                .name((String) item.get("name"))
+                                .price(priceValue != null ? priceValue.intValue() : 0)
+                                .description((String) item.get("description"))
+                                .category(mapToFoodCategory((String) item.get("category")))
+                                .build();
+                    })
                     .toList();
 
         } catch (Exception e) {
