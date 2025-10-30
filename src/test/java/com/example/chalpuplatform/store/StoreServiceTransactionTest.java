@@ -113,6 +113,7 @@ class StoreServiceTransactionTest {
                 LinkType.BAEMIN,
                 null,
                 "https://baemin.com/test",
+                true,
                 0
         );
 
@@ -155,8 +156,8 @@ class StoreServiceTransactionTest {
         System.out.println("    Store siteLink: " + savedStore.getSiteLink());
 
         System.out.println("\n>>> 3. StoreLink 생성");
-        StoreLink link1 = StoreLink.create(savedStore, LinkType.BAEMIN, null, "https://baemin.com", 0);
-        StoreLink link2 = StoreLink.create(savedStore, LinkType.YOGIYO, null, "https://yogiyo.com", 1);
+        StoreLink link1 = StoreLink.create(savedStore, LinkType.BAEMIN, null, "https://baemin.com", true, 0);
+        StoreLink link2 = StoreLink.create(savedStore, LinkType.YOGIYO, null, "https://yogiyo.com", true, 1);
 
         System.out.println("\n>>> 4. storeLinkRepository.save() 호출 - IDENTITY이므로 즉시 INSERT");
         StoreLink savedLink1 = storeLinkRepository.save(link1);

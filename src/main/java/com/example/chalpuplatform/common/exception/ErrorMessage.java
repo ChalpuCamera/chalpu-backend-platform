@@ -66,6 +66,8 @@ public enum ErrorMessage {
     STORE_NAME_ALREADY_EXISTS(BAD_REQUEST, "이미 존재하는 매장 이름입니다."),
     SITE_LINK_ALREADY_EXISTS(BAD_REQUEST, "이미 사용 중인 사이트 링크입니다."),
     SITE_CANNOT_NULL(BAD_REQUEST, "사이트 링크는 null일 수 없습니다."),
+    STORE_NOTICE_NOT_FOUND(NOT_FOUND, "가게 공지사항을 찾을 수 없습니다."),
+    STORE_NOTICE_ACCESS_DENIED(FORBIDDEN, "가게 공지사항 접근 권한이 없습니다."),
 
     // 메뉴 관련 에러
     MENU_NOT_FOUND(NOT_FOUND, "메뉴를 찾을 수 없습니다."),

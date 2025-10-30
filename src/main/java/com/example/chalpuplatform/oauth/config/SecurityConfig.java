@@ -59,6 +59,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/campaigns/types").permitAll()
                         .requestMatchers("/api/campaigns/sns-platforms").permitAll()
                         .requestMatchers("/api/campaigns/campaign-platforms").permitAll()
+                        .requestMatchers("/api/stores/{storeId}/notices").permitAll()
                         // 공지사항/홈 광고 배너 관련 경로
                         .requestMatchers("/api/notices/**").permitAll()
                         // 앱 버전 관련 경로
