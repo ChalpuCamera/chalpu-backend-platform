@@ -112,4 +112,26 @@ public class StoreNoticeController {
         storeNoticeService.deleteNotice(storeNoticeDeleteDto, storeId,userDetails.getId());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
+
+    /**
+     * 공지사항을 대표 공지로 설정합니다.
+     *
+     * @param storeId 가게 ID
+     * @param noticeId 공지사항 ID
+     * @return 설정된 대표 공지사항 정보
+     */
+    @PutMapping("/{storeId}/notices/{noticeId}/representative")
+    @PreAuthorize("hasRole('OWNER')")
+    @Operation(
+            summary = "가게 공지사항을 대표 공지로 설정",
+            description = "특정 공지사항을 가게의 대표 공지로 설정합니다. 한 가게당 하나의 대표 공지만 존재할 수 있으며, 기존 대표 공지는 자동으로 해제됩니다. 매장 관리 권한이 필요합니다."
+    )
+    public ResponseEntity<ApiResponse<StoreNoticeResponse>> setRepresentativeNotice(
+            @PathVariable("storeId") Long storeId,
+            @PathVariable("noticeId") Long noticeId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        StoreNoticeResponse response = storeNoticeService.makeNoticeRepresentative(storeId, noticeId, userDetails.getId());
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 }

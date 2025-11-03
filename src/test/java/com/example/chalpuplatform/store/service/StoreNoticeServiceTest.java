@@ -69,7 +69,8 @@ class StoreNoticeServiceTest {
 
         updateRequest = new UpdateStoreNoticeRequest(
                 "추석 연휴 휴무 안내",
-                "2024년 9월 16일부터 9월 18일까지 휴무입니다."
+                "2024년 9월 16일부터 9월 18일까지 휴무입니다.",
+                false
         );
 
         pageable = PageRequest.of(0, 20);
@@ -97,6 +98,31 @@ class StoreNoticeServiceTest {
             assertThat(response.getTitle()).isEqualTo("설 연휴 휴무 안내");
             assertThat(response.getBody()).isEqualTo("2024년 2월 9일부터 2월 12일까지 휴무입니다.");
             verify(userStoreRoleRepository).findByUserIdAndStoreIdAndIsActiveTrue(userId, storeId);
+            verify(storeNoticeRepository).save(any(StoreNotice.class));
+        }
+
+        @Test
+        @DisplayName("새 공지사항 생성 시 isRepresentative가 false로 설정된다")
+        void createNotice_IsRepresentativeDefaultFalse() {
+            // given
+            StoreNotice savedNotice = StoreNotice.builder()
+                    .storeId(storeId)
+                    .title("설 연휴 휴무 안내")
+                    .body("2024년 2월 9일부터 2월 12일까지 휴무입니다.")
+                    .isRepresentative(false)
+                    .build();
+
+            given(userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(userId, storeId))
+                    .willReturn(Optional.of(mock(UserStoreRole.class)));
+            given(storeNoticeRepository.save(any(StoreNotice.class)))
+                    .willReturn(savedNotice);
+
+            // when
+            StoreNoticeResponse response = storeNoticeService.createNotice(storeId, createRequest, userId);
+
+            // then
+            assertThat(response).isNotNull();
+            assertThat(response.getIsRepresentative()).isFalse();
             verify(storeNoticeRepository).save(any(StoreNotice.class));
         }
 
@@ -348,6 +374,157 @@ class StoreNoticeServiceTest {
             verify(userStoreRoleRepository).findByUserIdAndStoreIdAndIsActiveTrue(userId, storeId);
             verify(storeNoticeRepository, never()).findAllById(any());
             verify(storeNoticeRepository, never()).deleteAllById(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("대표 공지사항 설정 테스트")
+    class MakeNoticeRepresentativeTest {
+
+        private StoreNotice targetNotice;
+        private StoreNotice existingRepresentativeNotice;
+        private Long noticeId = 1L;
+
+        @BeforeEach
+        void setUp() {
+            targetNotice = StoreNotice.builder()
+                    .storeId(storeId)
+                    .title("신메뉴 출시 안내")
+                    .body("새로운 메뉴가 출시되었습니다.")
+                    .isRepresentative(false)
+                    .build();
+
+            existingRepresentativeNotice = StoreNotice.builder()
+                    .storeId(storeId)
+                    .title("기존 대표 공지")
+                    .body("기존 대표 공지 내용")
+                    .isRepresentative(true)
+                    .build();
+        }
+
+        @Test
+        @DisplayName("대표 공지사항으로 성공적으로 설정한다")
+        void makeNoticeRepresentative_Success() {
+            // given
+            given(userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(userId, storeId))
+                    .willReturn(Optional.of(mock(UserStoreRole.class)));
+            given(storeNoticeRepository.findById(noticeId))
+                    .willReturn(Optional.of(targetNotice));
+            given(storeNoticeRepository.findByStoreIdAndIsRepresentativeTrue(storeId))
+                    .willReturn(Optional.empty());
+
+            // when
+            StoreNoticeResponse response = storeNoticeService.makeNoticeRepresentative(storeId, noticeId, userId);
+
+            // then
+            assertThat(response).isNotNull();
+            assertThat(response.getTitle()).isEqualTo("신메뉴 출시 안내");
+            verify(userStoreRoleRepository).findByUserIdAndStoreIdAndIsActiveTrue(userId, storeId);
+            verify(storeNoticeRepository).findById(noticeId);
+            verify(storeNoticeRepository).findByStoreIdAndIsRepresentativeTrue(storeId);
+        }
+
+        @Test
+        @DisplayName("기존 대표 공지사항이 없을 때 대표로 설정한다")
+        void makeNoticeRepresentative_NoExistingRepresentative_Success() {
+            // given
+            given(userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(userId, storeId))
+                    .willReturn(Optional.of(mock(UserStoreRole.class)));
+            given(storeNoticeRepository.findById(noticeId))
+                    .willReturn(Optional.of(targetNotice));
+            given(storeNoticeRepository.findByStoreIdAndIsRepresentativeTrue(storeId))
+                    .willReturn(Optional.empty());
+
+            // when
+            StoreNoticeResponse response = storeNoticeService.makeNoticeRepresentative(storeId, noticeId, userId);
+
+            // then
+            assertThat(response).isNotNull();
+            assertThat(response.getTitle()).isEqualTo("신메뉴 출시 안내");
+            verify(storeNoticeRepository).findByStoreIdAndIsRepresentativeTrue(storeId);
+        }
+
+        @Test
+        @DisplayName("기존 대표 공지사항이 있을 때 자동으로 해제하고 새로운 대표 공지를 설정한다")
+        void makeNoticeRepresentative_WithExistingRepresentative_Success() {
+            // given
+            given(userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(userId, storeId))
+                    .willReturn(Optional.of(mock(UserStoreRole.class)));
+            given(storeNoticeRepository.findById(noticeId))
+                    .willReturn(Optional.of(targetNotice));
+            given(storeNoticeRepository.findByStoreIdAndIsRepresentativeTrue(storeId))
+                    .willReturn(Optional.of(existingRepresentativeNotice));
+
+            // when
+            StoreNoticeResponse response = storeNoticeService.makeNoticeRepresentative(storeId, noticeId, userId);
+
+            // then
+            assertThat(response).isNotNull();
+            assertThat(response.getTitle()).isEqualTo("신메뉴 출시 안내");
+            verify(userStoreRoleRepository).findByUserIdAndStoreIdAndIsActiveTrue(userId, storeId);
+            verify(storeNoticeRepository).findById(noticeId);
+            verify(storeNoticeRepository).findByStoreIdAndIsRepresentativeTrue(storeId);
+        }
+
+        @Test
+        @DisplayName("사용자가 가게 권한이 없으면 예외가 발생한다")
+        void makeNoticeRepresentative_UserHasNoPermission_ThrowsException() {
+            // given
+            given(userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(userId, storeId))
+                    .willReturn(Optional.empty());
+
+            // when & then
+            assertThatThrownBy(() -> storeNoticeService.makeNoticeRepresentative(storeId, noticeId, userId))
+                    .isInstanceOf(StoreException.class)
+                    .hasFieldOrPropertyWithValue("errorMessage", ErrorMessage.STORE_NOT_FOUND);
+
+            verify(userStoreRoleRepository).findByUserIdAndStoreIdAndIsActiveTrue(userId, storeId);
+            verify(storeNoticeRepository, never()).findById(anyLong());
+        }
+
+        @Test
+        @DisplayName("공지사항을 찾을 수 없으면 예외가 발생한다")
+        void makeNoticeRepresentative_NoticeNotFound_ThrowsException() {
+            // given
+            given(userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(userId, storeId))
+                    .willReturn(Optional.of(mock(UserStoreRole.class)));
+            given(storeNoticeRepository.findById(noticeId))
+                    .willReturn(Optional.empty());
+
+            // when & then
+            assertThatThrownBy(() -> storeNoticeService.makeNoticeRepresentative(storeId, noticeId, userId))
+                    .isInstanceOf(StoreException.class)
+                    .hasFieldOrPropertyWithValue("errorMessage", ErrorMessage.STORE_NOTICE_NOT_FOUND);
+
+            verify(userStoreRoleRepository).findByUserIdAndStoreIdAndIsActiveTrue(userId, storeId);
+            verify(storeNoticeRepository).findById(noticeId);
+            verify(storeNoticeRepository, never()).findByStoreIdAndIsRepresentativeTrue(anyLong());
+        }
+
+        @Test
+        @DisplayName("다른 가게의 공지사항에 접근하면 예외가 발생한다")
+        void makeNoticeRepresentative_UnauthorizedAccess_ThrowsException() {
+            // given
+            StoreNotice otherStoreNotice = StoreNotice.builder()
+                    .storeId(999L)
+                    .title("다른 가게 공지")
+                    .body("다른 가게의 공지사항")
+                    .isRepresentative(false)
+                    .build();
+
+            given(userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(userId, storeId))
+                    .willReturn(Optional.of(mock(UserStoreRole.class)));
+            given(storeNoticeRepository.findById(noticeId))
+                    .willReturn(Optional.of(otherStoreNotice));
+
+            // when & then
+            assertThatThrownBy(() -> storeNoticeService.makeNoticeRepresentative(storeId, noticeId, userId))
+                    .isInstanceOf(StoreException.class)
+                    .hasFieldOrPropertyWithValue("errorMessage", ErrorMessage.UNAUTHORIZED_STORE_NOTICE_ACCESS);
+
+            verify(userStoreRoleRepository).findByUserIdAndStoreIdAndIsActiveTrue(userId, storeId);
+            verify(storeNoticeRepository).findById(noticeId);
+            verify(storeNoticeRepository, never()).findByStoreIdAndIsRepresentativeTrue(anyLong());
         }
     }
 }

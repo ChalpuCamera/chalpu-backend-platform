@@ -68,6 +68,7 @@ public enum ErrorMessage {
     SITE_CANNOT_NULL(BAD_REQUEST, "사이트 링크는 null일 수 없습니다."),
     STORE_NOTICE_NOT_FOUND(NOT_FOUND, "가게 공지사항을 찾을 수 없습니다."),
     STORE_NOTICE_ACCESS_DENIED(FORBIDDEN, "가게 공지사항 접근 권한이 없습니다."),
+    UNAUTHORIZED_STORE_NOTICE_ACCESS(FORBIDDEN, "해당 가게의 공지사항이 아닙니다."),
 
     // 메뉴 관련 에러
     MENU_NOT_FOUND(NOT_FOUND, "메뉴를 찾을 수 없습니다."),

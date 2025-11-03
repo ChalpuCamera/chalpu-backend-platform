@@ -28,6 +28,9 @@ public class StoreNoticeResponse {
     @Schema(description = "공지사항 내용", example = "2024년 2월 9일부터 2월 12일까지 휴무입니다.")
     private String body;
 
+    @Schema(description = "대표 공지사항 여부", example = "true")
+    private Boolean isRepresentative;
+
     @Schema(description = "생성 시간")
     private LocalDateTime createdAt;
 
@@ -40,6 +43,7 @@ public class StoreNoticeResponse {
                 .storeId(storeNotice.getStoreId())
                 .title(storeNotice.getTitle())
                 .body(storeNotice.getBody())
+                .isRepresentative(storeNotice.getIsRepresentative())
                 .createdAt(storeNotice.getCreatedAt())
                 .updatedAt(storeNotice.getUpdatedAt())
                 .build();

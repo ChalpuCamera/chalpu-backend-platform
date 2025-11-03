@@ -1,13 +1,11 @@
 package com.example.chalpuplatform.store.service;
 
 import com.example.chalpuplatform.common.exception.ErrorMessage;
+import com.example.chalpuplatform.common.exception.NoticeException;
 import com.example.chalpuplatform.common.exception.StoreException;
 import com.example.chalpuplatform.common.response.PageResponse;
 import com.example.chalpuplatform.store.domain.StoreNotice;
-import com.example.chalpuplatform.store.dto.CreateStoreNoticeRequest;
-import com.example.chalpuplatform.store.dto.StoreNoticeDeleteDto;
-import com.example.chalpuplatform.store.dto.StoreNoticeResponse;
-import com.example.chalpuplatform.store.dto.UpdateStoreNoticeRequest;
+import com.example.chalpuplatform.store.dto.*;
 import com.example.chalpuplatform.store.repository.StoreNoticeRepository;
 import com.example.chalpuplatform.store.repository.UserStoreRoleRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -45,6 +44,7 @@ public class StoreNoticeService {
                     .storeId(storeId)
                     .title(request.getTitle())
                     .body(request.getBody())
+                    .isRepresentative(false)
                     .build();
 
             StoreNotice savedNotice = storeNoticeRepository.save(notice);
@@ -97,7 +97,7 @@ public class StoreNoticeService {
             userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(userId, notice.getStoreId())
                     .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
 
-            notice.update(request.getTitle(), request.getBody());
+            notice.update(request.getTitle(), request.getBody(), request.getIsRepresentative());
 
             log.info("event=store_notice_updated, notice_id={}, store_id={}", noticeId, notice.getStoreId());
             return StoreNoticeResponse.from(notice);
@@ -140,6 +140,45 @@ public class StoreNoticeService {
             throw e;
         } catch (Exception e) {
             log.error("event=store_notices_bulk_deletion_failed, error_message={}", e.getMessage(), e);
+            throw new StoreException(ErrorMessage.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * 공지사항을 대표 공지로 설정합니다.
+     * 한 가게당 하나의 대표 공지만 존재할 수 있으므로, 기존 대표 공지는 자동으로 해제됩니다.
+     *
+     * @param storeId 가게 ID
+     * @param noticeId 공지사항 ID
+     * @param userId 사용자 ID
+     * @return 설정된 대표 공지사항 정보
+     * @throws StoreException 권한이 없거나 공지사항을 찾을 수 없는 경우
+     */
+    public StoreNoticeResponse makeNoticeRepresentative(Long storeId, Long noticeId, Long userId) {
+        try {
+            userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(userId, storeId)
+                    .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
+
+            StoreNotice storeNotice = storeNoticeRepository.findById(noticeId)
+                    .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOTICE_NOT_FOUND));
+
+            if (!storeNotice.belongsToStore(storeId)) {
+                throw new StoreException(ErrorMessage.UNAUTHORIZED_STORE_NOTICE_ACCESS);
+            }
+
+            Optional<StoreNotice> existingRepresentative = storeNoticeRepository.findByStoreIdAndIsRepresentativeTrue(storeId);
+            existingRepresentative.ifPresent(representative ->
+                representative.update(representative.getTitle(), representative.getBody(), false)
+            );
+
+            storeNotice.makeRepresentative();
+
+            log.info("event=store_notice_set_representative, store_id={}, notice_id={}", storeId, noticeId);
+            return StoreNoticeResponse.from(storeNotice);
+        } catch (StoreException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("event=store_notice_set_representative_failed, store_id={}, notice_id={}, error_message={}", storeId, noticeId, e.getMessage(), e);
             throw new StoreException(ErrorMessage.INTERNAL_SERVER_ERROR);
         }
     }
