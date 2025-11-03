@@ -37,7 +37,7 @@ public class CustomerFeedbackController {
     @PreAuthorize("hasRole('CUSTOMER')")
     @Operation(
         summary = "피드백 생성",
-        description = "음식에 대한 피드백과 설문 응답을 생성합니다. 사진 업로드를 위한 S3 presigned URL 생성 API를 먼저 호출해야 합니다."
+        description = "음식에 대한 피드백과 설문 응답을 생성합니다. 사진 업로드를 위한 S3 presigned URL 생성 API를 먼저 호출해야 합니다. \n 캠페인 id, 사진은 nullable입니다."
     )
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -64,7 +64,7 @@ public class CustomerFeedbackController {
                     mediaType = "application/json",
                     schema = @Schema(implementation = FeedbackCreateRequest.class),
                     examples = @ExampleObject(
-                        value = "{\"storeId\": 1, \"foodId\": 1, \"surveyId\": 1, \"photoS3Keys\": [\"feedback-photos/customer1/uuid1.jpg\"], \"surveyAnswers\": [{\"questionId\": 1, \"answerText\": \"맛있었습니다\", \"numericValue\": 4.5}]}"
+                        value = "{\"storeId\": 1, \"foodId\": 1, \"surveyId\": 1, \"campaignId\": 1,\"photoS3Keys\": [\"feedback-photos/customer1/uuid1.jpg\"], \"surveyAnswers\": [{\"questionId\": 1, \"answerText\": \"맛있었습니다\", \"numericValue\": 4.5}]}"
                     )
                 )
             )

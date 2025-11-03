@@ -29,6 +29,9 @@ public class CustomerFeedbackResponse {
     @Schema(description = "설문 이름", example = "음식 만족도 조사")
     private String surveyName;
 
+    @Schema(description = "캠페인 id", example = "1")
+    private Long campaignId;
+
     @Schema(description = "피드백 생성일")
     private LocalDateTime createdAt;
 
@@ -44,6 +47,7 @@ public class CustomerFeedbackResponse {
                 .foodName(feedback.getFoodItem().getFoodName())
                 .storeName(feedback.getStore().getStoreName())
                 .surveyName(feedback.getSurvey().getSurveyName())
+                .campaignId(feedback.getCampaign() != null ? feedback.getCampaign().getId() : null)
                 .createdAt(feedback.getCreatedAt())
                 .build();
     }

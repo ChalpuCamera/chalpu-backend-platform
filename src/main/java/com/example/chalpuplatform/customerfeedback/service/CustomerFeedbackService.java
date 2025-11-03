@@ -71,6 +71,7 @@ public class CustomerFeedbackService {
     private final S3Presigner s3Presigner;
     private final UserStoreRoleService userStoreRoleService;
     private final CampaignRepository campaignRepository;
+    private final com.example.chalpuplatform.fooditem.repository.FoodItemQuestionRepository foodItemQuestionRepository;
     
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -159,26 +160,44 @@ public class CustomerFeedbackService {
         Set<Long> questionIds = answerRequests.stream()
                 .map(SurveyAnswerRequest::getQuestionId)
                 .collect(Collectors.toSet());
-        
+
         // 한 번에 모든 질문을 조회하여 Map으로 관리
         Map<Long, SurveyQuestion> questionMap = questionRepository.findAllById(questionIds)
                 .stream()
                 .collect(Collectors.toMap(SurveyQuestion::getId, Function.identity()));
-        
+
         // 존재하지 않는 질문 ID 검증
         Set<Long> notFoundQuestionIds = questionIds.stream()
                 .filter(id -> !questionMap.containsKey(id))
                 .collect(Collectors.toSet());
-        
+
         if (!notFoundQuestionIds.isEmpty()) {
             throw new SurveyException(ErrorMessage.SURVEY_QUESTION_NOT_FOUND);
         }
-        
+
+        // 활성화된 질문 ID 목록 조회
+        Set<Long> activeQuestionIds = foodItemQuestionRepository
+                .findByFoodItemId(feedback.getFoodItem().getId())
+                .stream()
+                .map(fiq -> fiq.getQuestion().getId())
+                .collect(Collectors.toSet());
+
+        // 비활성화된 질문에 대한 답변 시도 검증
+        Set<Long> inactiveQuestionIds = questionIds.stream()
+                .filter(id -> !activeQuestionIds.contains(id))
+                .collect(Collectors.toSet());
+
+        if (!inactiveQuestionIds.isEmpty()) {
+            log.error("event=inactive_question_answer_attempt, food_item_id={}, inactive_question_ids={}",
+                    feedback.getFoodItem().getId(), inactiveQuestionIds);
+            throw new SurveyException(ErrorMessage.SURVEY_QUESTION_NOT_FOUND);
+        }
+
         List<SurveyAnswer> answers = answerRequests.stream()
                 .map(request -> {
                     SurveyQuestion question = questionMap.get(request.getQuestionId());
-                    
-                    SurveyAnswer answer = SurveyAnswer.createAnswer(feedback, question, 
+
+                    SurveyAnswer answer = SurveyAnswer.createAnswer(feedback, question,
                             request.getAnswerText(), request.getNumericValue());
                     return answer;
                 })
@@ -328,9 +347,9 @@ public class CustomerFeedbackService {
         List<SurveyAnswer> answers = answerRepository.findByFeedbackIdOrderByQuestionId(feedback.getId());
         List<FeedbackPhoto> photos = photoRepository.findByFeedbackIdOrderByCreatedAtAsc(feedback.getId());
 
-        // 9번 질문 답변 찾기 (사장님께 한마디)
+        // 사장님께 한마디 질문 답변 찾기
         String ownerMessage = answers.stream()
-                .filter(answer -> answer.getQuestion().getId().equals(9L))
+                .filter(answer -> answer.getQuestion().isOwnerMessageQuestion())
                 .findFirst()
                 .map(SurveyAnswer::getAnswerText)
                 .orElse(null);
