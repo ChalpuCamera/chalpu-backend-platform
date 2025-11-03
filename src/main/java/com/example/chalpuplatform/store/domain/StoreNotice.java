@@ -27,15 +27,28 @@ public class StoreNotice extends BaseTimeEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String body;
 
+    @Column(name = "is_representative")
+    private Boolean isRepresentative;
+
     @Builder
-    public StoreNotice(Long storeId, String title, String body) {
+    public StoreNotice(Long storeId, String title, String body, Boolean isRepresentative) {
         this.storeId = storeId;
         this.title = title;
         this.body = body;
+        this.isRepresentative = isRepresentative != null ? isRepresentative : false;
     }
 
-    public void update(String title, String body) {
+    public void update(String title, String body,Boolean isRepresentative) {
         this.title = title;
         this.body = body;
+        this.isRepresentative = isRepresentative != null ? isRepresentative : this.isRepresentative;
+    }
+
+    public void makeRepresentative(){
+        this.isRepresentative = true;
+    }
+
+    public boolean belongsToStore(Long storeId){
+        return this.getStoreId().equals(storeId);
     }
 }
