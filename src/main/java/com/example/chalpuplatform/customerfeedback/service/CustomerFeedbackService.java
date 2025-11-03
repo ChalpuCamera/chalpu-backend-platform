@@ -177,7 +177,7 @@ public class CustomerFeedbackService {
 
         // 활성화된 질문 ID 목록 조회
         Set<Long> activeQuestionIds = foodItemQuestionRepository
-                .findActiveQuestionsByFoodItemId(feedback.getFoodItem().getId())
+                .findByFoodItemId(feedback.getFoodItem().getId())
                 .stream()
                 .map(fiq -> fiq.getQuestion().getId())
                 .collect(Collectors.toSet());
