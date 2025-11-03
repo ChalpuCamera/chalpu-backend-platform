@@ -71,6 +71,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/foods/store/{storeId}").permitAll()
                         // 쿠폰 멤버십 조회 및 적립 관련 경로
                         .requestMatchers("/api/coupon/**").permitAll()
+                        // 서베이 및 질문 조회 관련 경로
+                        .requestMatchers("/api/surveys/{surveyId}/questions").permitAll()
+                        .requestMatchers("/api/fooditems/{foodItemId}/active-questions").permitAll()
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )
