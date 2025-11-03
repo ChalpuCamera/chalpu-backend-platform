@@ -19,18 +19,19 @@ public interface SurveyAnswerRepository extends JpaRepository<SurveyAnswer, Long
 
     @Query("""
         SELECT sa.question.id, sa.question.jarAttribute, sa.numericValue,
-               (SELECT osa.numericValue FROM SurveyAnswer osa 
-                WHERE osa.feedback.id = f.id 
-                AND osa.question.id = 10)
+               (SELECT osa.numericValue FROM SurveyAnswer osa
+                WHERE osa.feedback.id = f.id
+                AND osa.question.questionType IN ('NPS_RECOMMEND', 'NPS_REORDER'))
         FROM SurveyAnswer sa
         JOIN sa.feedback f
         JOIN sa.question sq
         WHERE sq.jarAttribute IS NOT NULL
+        AND sq.jarAttribute != 'OWNER_MESSAGE'
         AND f.foodItem.id = :foodItemId
         AND f.createdAt BETWEEN :startDate AND :endDate
-        AND EXISTS (SELECT 1 FROM SurveyAnswer osa2 
-                    WHERE osa2.feedback.id = f.id 
-                    AND osa2.question.id = 10 
+        AND EXISTS (SELECT 1 FROM SurveyAnswer osa2
+                    WHERE osa2.feedback.id = f.id
+                    AND osa2.question.questionType IN ('NPS_RECOMMEND', 'NPS_REORDER')
                     AND osa2.numericValue IS NOT NULL)
         """)
     List<Object[]> findJARDataByFoodItem(@Param("foodItemId") Long foodItemId,
@@ -39,17 +40,18 @@ public interface SurveyAnswerRepository extends JpaRepository<SurveyAnswer, Long
     
     @Query("""
         SELECT new com.example.chalpuplatform.jar.domain.JARDataPoint(
-            sa.numericValue, 
-            (SELECT osa.numericValue FROM SurveyAnswer osa 
-             WHERE osa.feedback.id = sa.feedback.id 
-             AND osa.question.id = 10)
+            sa.numericValue,
+            (SELECT osa.numericValue FROM SurveyAnswer osa
+             WHERE osa.feedback.id = sa.feedback.id
+             AND osa.question.questionType IN ('NPS_RECOMMEND', 'NPS_REORDER'))
         )
         FROM SurveyAnswer sa
         WHERE sa.question.id = :questionId
         AND sa.question.jarAttribute IS NOT NULL
-        AND EXISTS (SELECT 1 FROM SurveyAnswer osa2 
-                    WHERE osa2.feedback.id = sa.feedback.id 
-                    AND osa2.question.id = 10 
+        AND sa.question.jarAttribute != 'OWNER_MESSAGE'
+        AND EXISTS (SELECT 1 FROM SurveyAnswer osa2
+                    WHERE osa2.feedback.id = sa.feedback.id
+                    AND osa2.question.questionType IN ('NPS_RECOMMEND', 'NPS_REORDER')
                     AND osa2.numericValue IS NOT NULL)
         """)
     List<JARDataPoint> findJARDataByQuestion(@Param("questionId") Long questionId);
@@ -82,7 +84,7 @@ public interface SurveyAnswerRepository extends JpaRepository<SurveyAnswer, Long
         SELECT sa.feedback.id, sa.answerText
         FROM SurveyAnswer sa
         WHERE sa.feedback.id IN :feedbackIds
-        AND sa.question.id = 9
+        AND sa.question.jarAttribute = 'OWNER_MESSAGE'
     """)
     List<Object[]> findOwnerMessagesByFeedbackIds(@Param("feedbackIds") List<Long> feedbackIds);
 

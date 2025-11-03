@@ -36,4 +36,12 @@ public class SurveyQuestion extends BaseTimeEntity{
     public boolean isJARQuestion() {
         return this.jarAttribute != null && this.questionType == QuestionType.SLIDER;
     }
+
+    public boolean isOwnerMessageQuestion() {
+        return this.jarAttribute == JARAttribute.OWNER_MESSAGE && this.questionType == QuestionType.TEXT;
+    }
+
+    public boolean isNPSQuestion() {
+        return this.questionType == QuestionType.NPS_RECOMMEND || this.questionType == QuestionType.NPS_REORDER;
+    }
 }
