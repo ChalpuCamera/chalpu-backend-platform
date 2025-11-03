@@ -15,10 +15,7 @@ import java.util.List;
 @Schema(description = "메뉴별 활성화 질문 설정 요청")
 public class FoodItemQuestionUpdateRequest {
 
-    @Schema(description = "설문 ID", example = "1", required = true)
-    private Long surveyId;
-
     @NotEmpty
-    @Schema(description = "활성화할 JAR 속성 목록", example = "[\"SPICINESS\", \"SWEETNESS\", \"PORTION_SIZE\"]")
-    private List<JARAttribute> jarAttributes;
+    @Schema(description = "활성화할 질문 ID 목록", example = "[1, 2, 3, 4, 5]")
+    private List<Long> questionIds;
 }

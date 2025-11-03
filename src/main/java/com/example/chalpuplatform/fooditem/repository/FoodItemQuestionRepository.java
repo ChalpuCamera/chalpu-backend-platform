@@ -15,20 +15,21 @@ import java.util.Optional;
 @Repository
 public interface FoodItemQuestionRepository extends JpaRepository<FoodItemQuestion, Long> {
 
-    List<FoodItemQuestion> findByFoodItemAndIsActiveTrue(FoodItem foodItem);
+    @Query("SELECT fiq FROM FoodItemQuestion fiq " +
+           "JOIN FETCH fiq.question " +
+           "WHERE fiq.foodItem = :foodItem")
+    List<FoodItemQuestion> findByFoodItem(@Param("foodItem") FoodItem foodItem);
 
     @Query("SELECT fiq FROM FoodItemQuestion fiq " +
            "JOIN FETCH fiq.question " +
-           "WHERE fiq.foodItem.id = :foodItemId AND fiq.isActive = true")
-    List<FoodItemQuestion> findActiveQuestionsByFoodItemId(@Param("foodItemId") Long foodItemId);
-
-    boolean existsByFoodItemAndQuestionAndIsActiveTrue(FoodItem foodItem, SurveyQuestion question);
+           "WHERE fiq.foodItem.id = :foodItemId")
+    List<FoodItemQuestion> findByFoodItemId(@Param("foodItemId") Long foodItemId);
 
     Optional<FoodItemQuestion> findByFoodItemAndQuestion(FoodItem foodItem, SurveyQuestion question);
 
     @Query("SELECT COUNT(fiq) FROM FoodItemQuestion fiq " +
-           "WHERE fiq.foodItem.id = :foodItemId AND fiq.isActive = true")
-    long countActiveQuestionsByFoodItemId(@Param("foodItemId") Long foodItemId);
+           "WHERE fiq.foodItem.id = :foodItemId")
+    long countByFoodItemId(@Param("foodItemId") Long foodItemId);
 
     @Modifying
     void deleteByFoodItem(FoodItem foodItem);

@@ -15,9 +15,6 @@ import lombok.NoArgsConstructor;
                         name = "uk_food_question",
                         columnNames = {"food_item_id", "question_id"}
                 )
-        },
-        indexes = {
-                @Index(name = "idx_food_item_questions_active", columnList = "food_item_id, is_active")
         }
 )
 @Getter
@@ -37,22 +34,10 @@ public class FoodItemQuestion extends BaseTimeEntity {
     @JoinColumn(name = "question_id", nullable = false)
     private SurveyQuestion question;
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
-
     @Builder
-    public FoodItemQuestion(FoodItem foodItem, SurveyQuestion question, Boolean isActive) {
+    public FoodItemQuestion(FoodItem foodItem, SurveyQuestion question) {
         this.foodItem = foodItem;
         this.question = question;
-        this.isActive = isActive != null ? isActive : true;
-    }
-
-    public void activate() {
-        this.isActive = true;
-    }
-
-    public void deactivate() {
-        this.isActive = false;
     }
 
     public boolean belongsToFoodItem(Long foodItemId) {

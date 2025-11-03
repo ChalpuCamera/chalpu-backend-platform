@@ -30,7 +30,7 @@ public class FoodItemQuestionController {
     @PreAuthorize("hasRole('OWNER')")
     @Operation(
             summary = "메뉴별 활성화 질문 설정",
-            description = "특정 메뉴에 대해 활성화할 JAR 질문들을 설정합니다. 사장님께 한마디는 자동으로 포함됩니다. 매장 관리 권한이 필요합니다."
+            description = "특정 메뉴에 대해 활성화할 질문들을 설정합니다. 사장님께 한마디 질문은 반드시 포함되어야 합니다. 매장 관리 권한이 필요합니다."
     )
     public ResponseEntity<ApiResponse<Void>> updateActiveQuestions(
             @PathVariable("foodItemId") Long foodItemId,
@@ -39,8 +39,7 @@ public class FoodItemQuestionController {
 
         foodItemQuestionService.activateQuestionsForFoodItem(
                 foodItemId,
-                request.getSurveyId(),
-                request.getJarAttributes(),
+                request.getQuestionIds(),
                 userDetails.getId()
         );
 
