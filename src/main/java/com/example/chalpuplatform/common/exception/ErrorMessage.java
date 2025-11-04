@@ -197,6 +197,7 @@ public enum ErrorMessage {
     SURVEY_QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "설문 질문을 찾을 수 없습니다."),
     SURVEY_ANSWER_INVALID(HttpStatus.BAD_REQUEST, "설문 답변이 유효하지 않습니다."),
     SURVEY_MUST_CONTAIN_FORCEOMESSAGE(BAD_REQUEST, "사장님에게 한마디 메세지는 필수 질문 요소입니다."),
+    SURVEY_QUESTION_DELETE_FAIL(BAD_REQUEST, "삭제에 실패했습니다."),
 
     // Reward 관련 에러
     REWARD_NOT_FOUND(HttpStatus.NOT_FOUND, "리워드를 찾을 수 없습니다."),

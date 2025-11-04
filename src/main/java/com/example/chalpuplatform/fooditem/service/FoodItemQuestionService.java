@@ -116,4 +116,14 @@ public class FoodItemQuestionService {
             throw new StoreException(ErrorMessage.INTERNAL_SERVER_ERROR);
         }
     }
+
+    public void deleteActiveQuestions(Long foodItemId, Long userId) {
+            FoodItem foodItem = foodItemRepository.findById(foodItemId)
+                    .orElseThrow(() -> new StoreException(ErrorMessage.FOOD_NOT_FOUND));
+
+            userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(userId, foodItem.getStore().getId())
+                    .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
+
+            foodItemQuestionRepository.deleteByFoodItemId(foodItemId);
+    }
 }

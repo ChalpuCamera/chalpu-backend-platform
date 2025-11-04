@@ -46,6 +46,20 @@ public class FoodItemQuestionController {
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
+    @DeleteMapping("/{foodItemId}/question-off")
+    @PreAuthorize("hasRole('OWNER')")
+    @Operation(
+            summary = "사장님이 메뉴의 활성화 질문을 삭제하는 API",
+            description = "특정 메뉴의 활성 질문을 다 삭제합니다."
+    )
+    public ResponseEntity<ApiResponse<Void>> deleteActiveQuestions(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable("foodItemId") Long foodItemId
+    ){
+        foodItemQuestionService.deleteActiveQuestions(foodItemId, userDetails.getId());
+        return ResponseEntity.ok(ApiResponse.success("삭제에 성공했습니다.",null));
+    }
+
     @GetMapping("/{foodItemId}/active-questions")
     @Operation(
             summary = "메뉴별 활성화된 질문 조회",

@@ -33,4 +33,11 @@ public interface FoodItemQuestionRepository extends JpaRepository<FoodItemQuesti
 
     @Modifying
     void deleteByFoodItem(FoodItem foodItem);
+
+    @Modifying
+    @Query(
+            "DELETE FROM FoodItemQuestion fiq "+
+            "WHERE fiq.foodItem.id = :foodItemId"
+    )
+    void deleteByFoodItemId(Long foodItemId);
 }
