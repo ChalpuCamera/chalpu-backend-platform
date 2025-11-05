@@ -3,9 +3,13 @@ package com.example.chalpuplatform.customerfeedback.service;
 import com.example.chalpuplatform.customerfeedback.domain.CustomerFeedback;
 import com.example.chalpuplatform.customerfeedback.domain.FeedbackPhoto;
 import com.example.chalpuplatform.customerfeedback.dto.*;
+import com.example.chalpuplatform.customerfeedback.dto.response.CustomerFeedbackResponse;
+import com.example.chalpuplatform.customerfeedback.dto.response.OwnerFeedbackSummaryResponse;
+import com.example.chalpuplatform.customerfeedback.dto.response.OwnerFeedbackDetailResponse;
 import com.example.chalpuplatform.customerfeedback.repository.CustomerFeedbackRepository;
 import com.example.chalpuplatform.customerfeedback.repository.FeedbackPhotoRepository;
 
+import com.example.chalpuplatform.fooditem.repository.FoodItemQuestionRepository;
 import com.example.chalpuplatform.user.domain.User;
 import com.example.chalpuplatform.user.domain.UserProfile;
 import com.example.chalpuplatform.user.repository.UserRepository;
@@ -71,7 +75,7 @@ public class CustomerFeedbackService {
     private final S3Presigner s3Presigner;
     private final UserStoreRoleService userStoreRoleService;
     private final CampaignRepository campaignRepository;
-    private final com.example.chalpuplatform.fooditem.repository.FoodItemQuestionRepository foodItemQuestionRepository;
+    private final FoodItemQuestionRepository foodItemQuestionRepository;
     
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -257,7 +261,7 @@ public class CustomerFeedbackService {
     }
 
     @Transactional(readOnly = true)
-    public Page<OwnerFeedbackResponse> getStoreFeedbacks(Long storeId, UserDetailsImpl userDetails, Pageable pageable) {
+    public Page<OwnerFeedbackSummaryResponse> getStoreFeedbacks(Long storeId, UserDetailsImpl userDetails, Pageable pageable) {
         // 사장님 권한 확인
         if (!userStoreRoleService.canUserManageStore(userDetails.getId(), storeId)) {
             throw new FeedbackException(ErrorMessage.STORE_ACCESS_DENIED);
@@ -269,36 +273,8 @@ public class CustomerFeedbackService {
             return Page.empty();
         }
 
-        // 피드백 ID 추출
-        List<Long> feedbackIds = feedbacks.stream()
-                .map(CustomerFeedback::getId)
-                .collect(Collectors.toList());
-
-        // 사장님 메시지만 효율적으로 조회
-        Map<Long, String> ownerMessagesMap = answerRepository
-                .findOwnerMessagesByFeedbackIds(feedbackIds)
-                .stream()
-                .collect(Collectors.toMap(
-                        row -> (Long) row[0],    // feedback_id
-                        row -> (String) row[1]    // answer_text
-                ));
-
-        // 사진 배치 조회
-        Map<Long, List<String>> photosMap = photoRepository
-                .findPhotosByFeedbackIds(feedbackIds)
-                .stream()
-                .collect(Collectors.groupingBy(
-                        fp -> fp.getFeedback().getId(),
-                        Collectors.mapping(FeedbackPhoto::getImageUrl, Collectors.toList())
-                ));
-
-        // DTO 변환
-        return feedbacks.map(feedback -> {
-            OwnerFeedbackResponse response = OwnerFeedbackResponse.from(feedback);
-            response.setOwnerMessage(ownerMessagesMap.get(feedback.getId()));
-            response.setPhotoUrls(photosMap.getOrDefault(feedback.getId(), Collections.emptyList()));
-            return response;
-        });
+        // DTO 변환 (목록에서는 사진과 답변 제외)
+        return feedbacks.map(this::mapToOwnerFeedbackSummary);
     }
 
     @Transactional(readOnly = true)
@@ -326,6 +302,33 @@ public class CustomerFeedbackService {
                 .storeName(feedback.getStore().getStoreName())
                 .surveyName(feedback.getSurvey().getSurveyName())
                 .createdAt(feedback.getCreatedAt())
+                .isViewed(feedback.getIsViewed())
+                .campaignId(feedback.getCampaign() != null ? feedback.getCampaign().getId() : null)
+                .surveyAnswers(answers.stream()
+                        .map(SurveyAnswerResponse::from)
+                        .collect(Collectors.toList()))
+                .photoUrls(photos.stream()
+                        .map(FeedbackPhoto::getImageUrl)
+                        .collect(Collectors.toList()))
+                .build();
+    }
+
+    // 사장님용 피드백 상세 응답 매핑
+    private OwnerFeedbackDetailResponse mapToOwnerFeedbackDetail(CustomerFeedback feedback,
+                                                                  List<SurveyAnswer> answers,
+                                                                  List<FeedbackPhoto> photos) {
+        return OwnerFeedbackDetailResponse.builder()
+                .feedbackId(feedback.getId())
+                .foodName(feedback.getFoodItem().getFoodName())
+                .storeName(feedback.getStore().getStoreName())
+                .surveyName(feedback.getSurvey().getSurveyName())
+                .createdAt(feedback.getCreatedAt())
+                .isViewed(feedback.getIsViewed())
+                .userId(feedback.getUser().getId())
+                .userNickname(feedback.getUser().getNickname())
+                .spicyLevel(feedback.getSpicyLevelSnapshot())
+                .mealAmount(feedback.getMealAmountSnapshot())
+                .mealSpending(feedback.getMealSpendingSnapshot())
                 .surveyAnswers(answers.stream()
                         .map(SurveyAnswerResponse::from)
                         .collect(Collectors.toList()))
@@ -342,25 +345,21 @@ public class CustomerFeedbackService {
         return mapToCustomerFeedbackResponseWithData(feedback, answers, photos);
     }
 
-    // 사장님용 응답 매핑 (고객 정보 포함)
-    private OwnerFeedbackResponse mapToOwnerFeedbackResponse(CustomerFeedback feedback) {
-        List<SurveyAnswer> answers = answerRepository.findByFeedbackIdOrderByQuestionId(feedback.getId());
-        List<FeedbackPhoto> photos = photoRepository.findByFeedbackIdOrderByCreatedAtAsc(feedback.getId());
-
-        // 사장님께 한마디 질문 답변 찾기
-        String ownerMessage = answers.stream()
-                .filter(answer -> answer.getQuestion().isOwnerMessageQuestion())
-                .findFirst()
-                .map(SurveyAnswer::getAnswerText)
-                .orElse(null);
-
-        OwnerFeedbackResponse response = OwnerFeedbackResponse.from(feedback);
-        response.setOwnerMessage(ownerMessage);
-        response.setPhotoUrls(photos.stream()
-                .map(FeedbackPhoto::getImageUrl)
-                .collect(Collectors.toList()));
-
-        return response;
+    // 사장님용 피드백 요약 매핑 (목록용 - 가벼움)
+    private OwnerFeedbackSummaryResponse mapToOwnerFeedbackSummary(CustomerFeedback feedback) {
+        return OwnerFeedbackSummaryResponse.builder()
+                .feedbackId(feedback.getId())
+                .foodName(feedback.getFoodItem().getFoodName())
+                .storeName(feedback.getStore().getStoreName())
+                .surveyName(feedback.getSurvey().getSurveyName())
+                .createdAt(feedback.getCreatedAt())
+                .isViewed(feedback.getIsViewed())
+                .userId(feedback.getUser().getId())
+                .userNickname(feedback.getUser().getNickname())
+                .spicyLevel(feedback.getSpicyLevelSnapshot())
+                .mealAmount(feedback.getMealAmountSnapshot())
+                .mealSpending(feedback.getMealSpendingSnapshot())
+                .build();
     }
 
 
@@ -443,7 +442,7 @@ public class CustomerFeedbackService {
     }
 
     @Transactional(readOnly = true)
-    public Page<OwnerFeedbackResponse> getFoodFeedbacks(Long foodId, UserDetailsImpl userDetails, Pageable pageable) {
+    public Page<OwnerFeedbackSummaryResponse> getFoodFeedbacks(Long foodId, UserDetailsImpl userDetails, Pageable pageable) {
         // 음식이 속한 매장 조회
         FoodItem foodItem = foodItemRepository.findById(foodId)
                 .orElseThrow(() -> new FeedbackException(ErrorMessage.FOODITEM_NOT_FOUND));
@@ -461,36 +460,8 @@ public class CustomerFeedbackService {
             return Page.empty();
         }
 
-        // 피드백 ID 추출
-        List<Long> feedbackIds = feedbacks.stream()
-                .map(CustomerFeedback::getId)
-                .collect(Collectors.toList());
-
-        // 사장님 메시지만 효율적으로 조회
-        Map<Long, String> ownerMessagesMap = answerRepository
-                .findOwnerMessagesByFeedbackIds(feedbackIds)
-                .stream()
-                .collect(Collectors.toMap(
-                        row -> (Long) row[0],    // feedback_id
-                        row -> (String) row[1]    // answer_text
-                ));
-
-        // 사진 배치 조회
-        Map<Long, List<String>> photosMap = photoRepository
-                .findPhotosByFeedbackIds(feedbackIds)
-                .stream()
-                .collect(Collectors.groupingBy(
-                        fp -> fp.getFeedback().getId(),
-                        Collectors.mapping(FeedbackPhoto::getImageUrl, Collectors.toList())
-                ));
-
-        // DTO 변환
-        return feedbacks.map(feedback -> {
-            OwnerFeedbackResponse response = OwnerFeedbackResponse.from(feedback);
-            response.setOwnerMessage(ownerMessagesMap.get(feedback.getId()));
-            response.setPhotoUrls(photosMap.getOrDefault(feedback.getId(), Collections.emptyList()));
-            return response;
-        });
+        // DTO 변환 (목록에서는 사진과 답변 제외)
+        return feedbacks.map(this::mapToOwnerFeedbackSummary);
     }
 
 
@@ -516,7 +487,7 @@ public class CustomerFeedbackService {
 
     // 고객 입맛 프로필 조회 (피드백 상세에서)
     @Transactional(readOnly = true)
-    public OwnerFeedbackResponse getFeedbackWithCustomerTaste(Long feedbackId, UserDetailsImpl userDetails) {
+    public OwnerFeedbackDetailResponse getFeedbackWithCustomerTaste(Long feedbackId, UserDetailsImpl userDetails) {
         CustomerFeedback feedback = feedbackRepository.findByIdWithUserProfile(feedbackId);
 
         if (feedback == null) {
@@ -534,6 +505,9 @@ public class CustomerFeedbackService {
             feedbackRepository.save(feedback);
         }
 
-        return mapToOwnerFeedbackResponse(feedback);
+        List<SurveyAnswer> surveyAnswers = answerRepository.findByFeedbackIdWithQuestion(feedbackId);
+        List<FeedbackPhoto> feedbackPhotos = photoRepository.findByFeedbackIdOrderByCreatedAtAsc(feedbackId);
+
+        return mapToOwnerFeedbackDetail(feedback, surveyAnswers, feedbackPhotos);
     }
 }

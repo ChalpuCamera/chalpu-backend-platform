@@ -22,6 +22,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import com.example.chalpuplatform.customerfeedback.dto.*;
+import com.example.chalpuplatform.customerfeedback.dto.response.CustomerFeedbackResponse;
+import com.example.chalpuplatform.customerfeedback.dto.response.OwnerFeedbackSummaryResponse;
+import com.example.chalpuplatform.customerfeedback.dto.response.OwnerFeedbackDetailResponse;
 
 import java.util.List;
 
@@ -45,7 +48,7 @@ public class CustomerFeedbackController {
             description = "피드백 생성 성공",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = FeedbackResponse.class),
+                schema = @Schema(implementation = CustomerFeedbackResponse.class),
                 examples = @ExampleObject(
                     value = "{\"success\": true, \"message\": \"성공했습니다\", \"data\": {\"id\": 1, \"storeId\": 1, \"foodId\": 1, \"surveyId\": 1, \"photoUrls\": [\"https://s3.../photo1.jpg\"], \"surveyAnswers\": [{\"questionId\": 1, \"answerText\": \"맛있었습니다\", \"numericValue\": 4.5}], \"createdAt\": \"2024-01-01T10:00:00\"}}"
                 )
@@ -123,13 +126,13 @@ public class CustomerFeedbackController {
         ),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "매장을 찾을 수 없습니다")
     })
-    public ResponseEntity<ApiResponse<PageResponse<OwnerFeedbackResponse>>> getStoreFeedbacks(
+    public ResponseEntity<ApiResponse<PageResponse<OwnerFeedbackSummaryResponse>>> getStoreFeedbacks(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Parameter(description = "매장 ID", example = "1")
             @PathVariable("storeId") Long storeId,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        Page<OwnerFeedbackResponse> responses = feedbackService.getStoreFeedbacks(storeId, userDetails, pageable);
+        Page<OwnerFeedbackSummaryResponse> responses = feedbackService.getStoreFeedbacks(storeId, userDetails, pageable);
         return ResponseEntity.ok(ApiResponse.success(PageResponse.from(responses)));
     }
 
@@ -153,13 +156,13 @@ public class CustomerFeedbackController {
         ),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "음식을 찾을 수 없습니다")
     })
-    public ResponseEntity<ApiResponse<PageResponse<OwnerFeedbackResponse>>> getFoodFeedbacks(
+    public ResponseEntity<ApiResponse<PageResponse<OwnerFeedbackSummaryResponse>>> getFoodFeedbacks(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Parameter(description = "음식 ID", example = "1")
             @PathVariable("foodId") Long foodId,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        Page<OwnerFeedbackResponse> responses = feedbackService.getFoodFeedbacks(foodId, userDetails, pageable);
+        Page<OwnerFeedbackSummaryResponse> responses = feedbackService.getFoodFeedbacks(foodId, userDetails, pageable);
         return ResponseEntity.ok(ApiResponse.success(PageResponse.from(responses)));
     }
 
@@ -174,7 +177,7 @@ public class CustomerFeedbackController {
             description = "피드백 상세 조회 성공",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = FeedbackResponse.class),
+                schema = @Schema(implementation = CustomerFeedbackResponse.class),
                 examples = @ExampleObject(
                     value = "{\"success\": true, \"message\": \"성공했습니다\", \"data\": {\"id\": 1, \"storeId\": 1, \"storeName\": \"맛집\", \"foodId\": 1, \"foodName\": \"지리산\", \"photoUrls\": [\"https://s3.../photo1.jpg\"], \"surveyAnswers\": [{\"questionId\": 1, \"questionText\": \"맛은 어때는지요?\", \"answerText\": \"맛있었습니다\", \"numericValue\": 4.5}], \"createdAt\": \"2024-01-01T10:00:00\"}}"
                 )
@@ -202,7 +205,7 @@ public class CustomerFeedbackController {
             description = "피드백 및 고객 입맛 조회 성공",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = FeedbackResponse.class),
+                schema = @Schema(implementation = OwnerFeedbackDetailResponse.class),
                 examples = @ExampleObject(
                     value = "{\"success\": true, \"message\": \"성공했습니다\", \"data\": {\"id\": 1, \"foodName\": \"김치찌개\", \"storeName\": \"맛집\", \"userNickname\": \"음식러버\", \"isViewed\": true, \"spicyLevel\": 3, \"mealAmount\": 4, \"mealSpending\": 3, \"photoUrls\": [\"https://s3.../photo1.jpg\"], \"surveyAnswers\": [{\"questionId\": 1, \"answerText\": \"맛있었습니다\"}], \"createdAt\": \"2024-01-01T10:00:00\"}}"
                 )
@@ -212,12 +215,12 @@ public class CustomerFeedbackController {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "해당 매장의 사장님만 조회 가능합니다"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "피드백을 찾을 수 없습니다")
     })
-    public ResponseEntity<ApiResponse<OwnerFeedbackResponse>> getFeedbackWithCustomerTaste(
+    public ResponseEntity<ApiResponse<OwnerFeedbackDetailResponse>> getFeedbackWithCustomerTaste(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Parameter(description = "피드백 ID", example = "1")
             @PathVariable("feedbackId") Long feedbackId) {
 
-        OwnerFeedbackResponse response = feedbackService.getFeedbackWithCustomerTaste(feedbackId, userDetails);
+        OwnerFeedbackDetailResponse response = feedbackService.getFeedbackWithCustomerTaste(feedbackId, userDetails);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
