@@ -89,6 +89,7 @@ public class FoodItemQuestionService {
 
                 foodItemQuestionRepository.saveAll(foodItemQuestions);
             }
+            foodItem.updateActiveQuestions(questionIds.size());
 
             log.info("event=food_item_questions_activated, food_item_id={}, added={}, deleted={}, total={}",
                     foodItemId, toAdd.size(), toDelete.size(), newQuestionIds.size());
@@ -125,5 +126,7 @@ public class FoodItemQuestionService {
                     .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
 
             foodItemQuestionRepository.deleteByFoodItemId(foodItemId);
+
+            foodItem.clearActiveQuestions();
     }
 }

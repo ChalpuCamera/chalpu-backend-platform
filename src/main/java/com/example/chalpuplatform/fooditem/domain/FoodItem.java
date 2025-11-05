@@ -42,6 +42,13 @@ public class FoodItem extends BaseTimeEntity {
     private FoodCategory category;
 
     @Builder.Default
+    private Boolean hasActiveReview = false;
+
+    @Builder.Default
+    @Column(name = "active_question_count")
+    private Integer activeQuestionCount = 0;
+
+    @Builder.Default
     private Boolean isActive = true;
 
     @Builder.Default
@@ -75,5 +82,20 @@ public class FoodItem extends BaseTimeEntity {
     public void softDelete() {
         this.isActive = false;
         // 연관된 엔티티들은 Repository를 통해 서비스 레이어에서 처리
+    }
+
+    // 질문 활성화/비활성화 도메인 메서드
+    public void updateActiveQuestions(Integer questionCount) {
+        if (questionCount == null || questionCount < 0) {
+            throw new IllegalArgumentException("질문 개수는 0 이상이어야 합니다");
+        }
+
+        this.activeQuestionCount = questionCount;
+        this.hasActiveReview = questionCount > 0;
+    }
+
+    public void clearActiveQuestions() {
+        this.hasActiveReview = false;
+        this.activeQuestionCount = 0;
     }
 } 
