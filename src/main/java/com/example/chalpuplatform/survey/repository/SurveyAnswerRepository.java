@@ -81,7 +81,7 @@ public interface SurveyAnswerRepository extends JpaRepository<SurveyAnswer, Long
 
     // 사장님께 한마디만 효율적으로 조회
     @Query("""
-        SELECT sa.feedback.id, sa.answerText
+        SELECT sa.feedback.id, sa.numericValue,sa.answerText
         FROM SurveyAnswer sa
         WHERE sa.feedback.id IN :feedbackIds
         AND sa.question.jarAttribute = 'OWNER_MESSAGE'
