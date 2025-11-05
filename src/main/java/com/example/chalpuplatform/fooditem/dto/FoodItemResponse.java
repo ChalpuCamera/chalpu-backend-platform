@@ -41,6 +41,12 @@ public class FoodItemResponse {
     @Schema(description = "카테고리", example = "메인")
     private String categoryName;
 
+    @Schema(description = "피드백 활성 여부",example = "true or false")
+    private Boolean hasActiveReview;
+
+    @Schema(description = "활성 피드백 개수", example = "6")
+    private Integer activeQuestionCount;
+
     @Schema(description = "생성 시간", example = "2024-01-15T09:30:00")
     private LocalDateTime createdAt;
 
@@ -63,6 +69,8 @@ public class FoodItemResponse {
                 .createdAt(foodItem.getCreatedAt())
                 .updatedAt(foodItem.getUpdatedAt())
                 .feedbackCount(foodItem.getFeedbackCount())
+                .hasActiveReview(foodItem.getHasActiveReview())
+                .activeQuestionCount(foodItem.getActiveQuestionCount())
                 .build();
     }
 } 
