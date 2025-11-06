@@ -35,8 +35,4 @@ public class FeedbackPhoto extends BaseTimeEntity {
                 .fileName(fileName)
                 .build();
     }
-
-    public String getImageUrl() {
-        return "https://your-bucket-name.s3.amazonaws.com/" + this.s3Key;
-    }
 }
