@@ -80,6 +80,9 @@ public class CustomerFeedbackService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
+    @Value("${cloud.aws.cloudfront.domain}")
+    private String cloudfrontDomain;
+
     public CustomerFeedbackResponse createFeedback(UserDetailsImpl userDetails, FeedbackCreateRequest request) {
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new UserException(ErrorMessage.USER_NOT_FOUND));
@@ -225,6 +228,13 @@ public class CustomerFeedbackService {
         return s3Key.substring(s3Key.lastIndexOf("/") + 1);
     }
 
+    private String buildPhotoUrl(String s3Key) {
+        if (cloudfrontDomain == null || s3Key == null) {
+            return null;
+        }
+        return cloudfrontDomain.endsWith("/") ? cloudfrontDomain + s3Key : cloudfrontDomain + "/" + s3Key;
+    }
+
     @Transactional(readOnly = true)
     public Page<CustomerFeedbackResponse> getUserFeedbacks(UserDetailsImpl userDetails, Pageable pageable) {
         // 페치 조인으로 연관 엔티티 함께 조회
@@ -308,7 +318,7 @@ public class CustomerFeedbackService {
                         .map(SurveyAnswerResponse::from)
                         .collect(Collectors.toList()))
                 .photoUrls(photos.stream()
-                        .map(FeedbackPhoto::getImageUrl)
+                        .map(photo -> buildPhotoUrl(photo.getS3Key()))
                         .collect(Collectors.toList()))
                 .build();
     }
@@ -333,7 +343,7 @@ public class CustomerFeedbackService {
                         .map(SurveyAnswerResponse::from)
                         .collect(Collectors.toList()))
                 .photoUrls(photos.stream()
-                        .map(FeedbackPhoto::getImageUrl)
+                        .map(photo -> buildPhotoUrl(photo.getS3Key()))
                         .collect(Collectors.toList()))
                 .build();
     }
@@ -380,7 +390,7 @@ public class CustomerFeedbackService {
                 .build();
 
         PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofMinutes(10)) // The URL will be valid for 10 minutes
+                .signatureDuration(Duration.ofMinutes(10))
                 .putObjectRequest(objectRequest)
                 .build();
 
