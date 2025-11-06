@@ -21,7 +21,13 @@ public enum JARAttribute {
     DONENESS("익힘정도"),
     OILINESS("기름짐"),
     PRICE("가격"),
-    OWNER_MESSAGE("사장님께 한마디");
+    OWNER_MESSAGE("사장님께 한마디"),
+    DESIGN_SATISFACTION("디자인 만족도"),
+    MOISTNESS("촉촉함"),
+    CREAMINESS("크림 질감"),
+    FLAVOR_BALANCE("맛 조화"),
+    VALUE_FOR_MONEY("가격 대비 만족도"),
+    REPURCHASE_INTENT("재구매 의향");
 
     private final String koreanName;
 }
