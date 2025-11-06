@@ -36,6 +36,7 @@ public class FoodItemExtractionService {
     private final GeminiService geminiService;
     private final MenuPersistenceService menuPersistenceService;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private static final int MAX_FOOD_NAME_LENGTH = 30;
 
     @Transactional
     public String startMenuExtraction(Long userId, Long storeId, MultipartFile image) {
@@ -149,7 +150,7 @@ public class FoodItemExtractionService {
             List<Map<String, Object>> items = (List<Map<String, Object>>) response.get("items");
 
             return items.stream()
-                    .filter(item -> item.get("name") != null )
+                    .filter(this::isValidFoodName)
                     .map(item -> {
                         Number priceValue = (Number) item.get("price");
                         return ExtractedFoodItemDto.builder()
@@ -166,6 +167,11 @@ public class FoodItemExtractionService {
                     Thread.currentThread().getName(), e.getMessage(), e);
             throw new FoodException(ErrorMessage.MENU_PARSING_FAILED);
         }
+    }
+
+    private boolean isValidFoodName(Map<String, Object> item) {
+        String foodName = (String) item.get("name");
+        return foodName != null && foodName.length() <= MAX_FOOD_NAME_LENGTH;
     }
 
     private FoodCategory mapToFoodCategory(String categoryStr) {
