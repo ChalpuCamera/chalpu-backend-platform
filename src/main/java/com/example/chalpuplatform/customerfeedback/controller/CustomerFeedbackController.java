@@ -120,7 +120,7 @@ public class CustomerFeedbackController {
                 mediaType = "application/json",
                 schema = @Schema(implementation = PageResponse.class),
                 examples = @ExampleObject(
-                    value = "{\"success\": true, \"message\": \"성공했습니다\", \"data\": {\"content\": [{\"id\": 1, \"customerId\": 2, \"customerName\": \"홍길동\", \"foodId\": 1, \"foodName\": \"지리산\", \"photoUrls\": [\"https://s3.../photo1.jpg\"], \"createdAt\": \"2024-01-01T10:00:00\"}], \"page\": 0, \"size\": 20, \"totalElements\": 100, \"totalPages\": 5, \"hasNext\": true, \"hasPrevious\": false}}"
+                    value = "{\"success\": true, \"message\": \"성공했습니다\", \"data\": {\"content\": [{\"id\": 1, \"customerId\": 2, \"customerName\": \"홍길동\", \"foodId\": 1, \"foodName\": \"지리산\", \"photoUrls\": [\"https://cdn../photo1.jpg\"], \"createdAt\": \"2024-01-01T10:00:00\"}], \"page\": 0, \"size\": 20, \"totalElements\": 100, \"totalPages\": 5, \"hasNext\": true, \"hasPrevious\": false}}"
                 )
             )
         ),
@@ -150,7 +150,7 @@ public class CustomerFeedbackController {
                 mediaType = "application/json",
                 schema = @Schema(implementation = PageResponse.class),
                 examples = @ExampleObject(
-                    value = "{\"success\": true, \"message\": \"성공했습니다\", \"data\": {\"content\": [{\"id\": 1, \"customerId\": 2, \"customerName\": \"홍길동\", \"foodId\": 1, \"foodName\": \"지리산\", \"photoUrls\": [\"https://s3.../photo1.jpg\"], \"createdAt\": \"2024-01-01T10:00:00\"}], \"page\": 0, \"size\": 20, \"totalElements\": 100, \"totalPages\": 5, \"hasNext\": true, \"hasPrevious\": false}}"
+                    value = "{\"success\": true, \"message\": \"성공했습니다\", \"data\": {\"content\": [{\"id\": 1, \"customerId\": 2, \"customerName\": \"홍길동\", \"foodId\": 1, \"foodName\": \"지리산\", \"photoUrls\": [\"https://cdn.../photo1.jpg\"], \"createdAt\": \"2024-01-01T10:00:00\"}], \"page\": 0, \"size\": 20, \"totalElements\": 100, \"totalPages\": 5, \"hasNext\": true, \"hasPrevious\": false}}"
                 )
             )
         ),
@@ -179,7 +179,7 @@ public class CustomerFeedbackController {
                 mediaType = "application/json",
                 schema = @Schema(implementation = CustomerFeedbackResponse.class),
                 examples = @ExampleObject(
-                    value = "{\"success\": true, \"message\": \"성공했습니다\", \"data\": {\"id\": 1, \"storeId\": 1, \"storeName\": \"맛집\", \"foodId\": 1, \"foodName\": \"지리산\", \"photoUrls\": [\"https://s3.../photo1.jpg\"], \"surveyAnswers\": [{\"questionId\": 1, \"questionText\": \"맛은 어때는지요?\", \"answerText\": \"맛있었습니다\", \"numericValue\": 4.5}], \"createdAt\": \"2024-01-01T10:00:00\"}}"
+                    value = "{\"success\": true, \"message\": \"성공했습니다\", \"data\": {\"id\": 1, \"storeId\": 1, \"storeName\": \"맛집\", \"foodId\": 1, \"foodName\": \"지리산\", \"photoUrls\": [\"https://cdn.../photo1.jpg\"], \"surveyAnswers\": [{\"questionId\": 1, \"questionText\": \"맛은 어때는지요?\", \"answerText\": \"맛있었습니다\", \"numericValue\": 4.5}], \"createdAt\": \"2024-01-01T10:00:00\"}}"
                 )
             )
         ),
@@ -207,7 +207,7 @@ public class CustomerFeedbackController {
                 mediaType = "application/json",
                 schema = @Schema(implementation = OwnerFeedbackDetailResponse.class),
                 examples = @ExampleObject(
-                    value = "{\"success\": true, \"message\": \"성공했습니다\", \"data\": {\"id\": 1, \"foodName\": \"김치찌개\", \"storeName\": \"맛집\", \"userNickname\": \"음식러버\", \"isViewed\": true, \"spicyLevel\": 3, \"mealAmount\": 4, \"mealSpending\": 3, \"photoUrls\": [\"https://s3.../photo1.jpg\"], \"surveyAnswers\": [{\"questionId\": 1, \"answerText\": \"맛있었습니다\"}], \"createdAt\": \"2024-01-01T10:00:00\"}}"
+                    value = "{\"success\": true, \"message\": \"성공했습니다\", \"data\": {\"id\": 1, \"foodName\": \"김치찌개\", \"storeName\": \"맛집\", \"userNickname\": \"음식러버\", \"isViewed\": true, \"spicyLevel\": 3, \"mealAmount\": 4, \"mealSpending\": 3, \"photoUrls\": [\"https://cdn.../photo1.jpg\"], \"surveyAnswers\": [{\"questionId\": 1, \"answerText\": \"맛있었습니다\"}], \"createdAt\": \"2024-01-01T10:00:00\"}}"
                 )
             )
         ),
@@ -250,7 +250,7 @@ public class CustomerFeedbackController {
                 mediaType = "application/json",
                 schema = @Schema(implementation = FeedbackPhotosPresignedUrlResponse.class),
                 examples = @ExampleObject(
-                    value = "{\"success\": true, \"message\": \"성공했습니다\", \"data\": {\"presignedUrls\": [{\"fileName\": \"photo1.jpg\", \"presignedUrl\": \"https://s3.../presigned-url\", \"s3Key\": \"feedback-photos/customer1/uuid1.jpg\"}]}}"
+                    value = "{\"success\": true, \"message\": \"성공했습니다\", \"data\": {\"presignedUrls\": [{\"fileName\": \"photo1.jpg\", \"presignedUrl\": \"https://cdn.../presigned-url\", \"s3Key\": \"feedback-photos/customer1/uuid1.jpg\"}]}}"
                 )
             )
         ),
