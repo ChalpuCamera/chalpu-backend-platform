@@ -29,8 +29,8 @@ public interface FoodItemRepository extends JpaRepository<FoodItem, Long> {
     Optional<Long> findStoreIdByFoodItemId(@Param("id") Long id);
 
     // 메뉴 추출을 위한 중복 체크용 메서드
-    @Query("SELECT fi FROM FoodItem fi WHERE fi.store.id = :storeId AND fi.foodName = :foodName AND fi.isActive = true")
-    Optional<FoodItem> findByStoreIdAndFoodName(@Param("storeId") Long storeId, @Param("foodName") String foodName);
+    @Query("SELECT CASE WHEN COUNT(fi) > 0 THEN true ELSE false END FROM FoodItem fi WHERE fi.store.id = :storeId AND fi.foodName = :foodName AND fi.isActive = true")
+    boolean existsByStoreIdAndFoodName(@Param("storeId") Long storeId, @Param("foodName") String foodName);
 
     @Modifying
     @Query("UPDATE FoodItem f SET f.feedbackCount = f.feedbackCount + 1 WHERE f.id = :foodItemId")

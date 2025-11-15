@@ -71,8 +71,8 @@ public class MenuPersistenceService {
 
         for (ExtractedFoodItemDto item : extractedItems) {
             // 기존 아이템 확인 (이름으로 중복 체크)
-            boolean exists = foodItemRepository.findByStoreIdAndFoodName(
-                    store.getId(), item.getName()).isPresent();
+            boolean exists = foodItemRepository.existsByStoreIdAndFoodName(
+                    store.getId(), item.getName());
 
             if (!exists) {
                 FoodItem foodItem = FoodItem.builder()
