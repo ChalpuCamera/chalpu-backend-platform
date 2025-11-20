@@ -21,7 +21,10 @@ public interface SurveyAnswerRepository extends JpaRepository<SurveyAnswer, Long
         SELECT sa.question.id, sa.question.jarAttribute, sa.numericValue,
                (SELECT osa.numericValue FROM SurveyAnswer osa
                 WHERE osa.feedback.id = f.id
-                AND osa.question.questionType IN ('NPS_RECOMMEND', 'NPS_REORDER'))
+                AND osa.question.questionType = 'NPS_RECOMMEND'),
+               (SELECT osa.numericValue FROM SurveyAnswer osa
+                WHERE osa.feedback.id = f.id
+                AND osa.question.questionType = 'NPS_REORDER')
         FROM SurveyAnswer sa
         JOIN sa.feedback f
         JOIN sa.question sq
@@ -39,12 +42,13 @@ public interface SurveyAnswerRepository extends JpaRepository<SurveyAnswer, Long
                                          @Param("endDate") LocalDateTime endDate);
     
     @Query("""
-        SELECT new com.example.chalpuplatform.jar.domain.JARDataPoint(
-            sa.numericValue,
-            (SELECT osa.numericValue FROM SurveyAnswer osa
-             WHERE osa.feedback.id = sa.feedback.id
-             AND osa.question.questionType IN ('NPS_RECOMMEND', 'NPS_REORDER'))
-        )
+        SELECT sa.numericValue,
+               (SELECT osa.numericValue FROM SurveyAnswer osa
+                WHERE osa.feedback.id = sa.feedback.id
+                AND osa.question.questionType = 'NPS_RECOMMEND'),
+               (SELECT osa.numericValue FROM SurveyAnswer osa
+                WHERE osa.feedback.id = sa.feedback.id
+                AND osa.question.questionType = 'NPS_REORDER')
         FROM SurveyAnswer sa
         WHERE sa.question.id = :questionId
         AND sa.question.jarAttribute IS NOT NULL
@@ -54,7 +58,7 @@ public interface SurveyAnswerRepository extends JpaRepository<SurveyAnswer, Long
                     AND osa2.question.questionType IN ('NPS_RECOMMEND', 'NPS_REORDER')
                     AND osa2.numericValue IS NOT NULL)
         """)
-    List<JARDataPoint> findJARDataByQuestion(@Param("questionId") Long questionId);
+    List<Object[]> findJARDataByQuestion(@Param("questionId") Long questionId);
     
     // NPS 데이터 조회
     @Query("""
