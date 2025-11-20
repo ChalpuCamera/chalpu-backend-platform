@@ -71,8 +71,14 @@ public class JARAnalysisApplicationService {
                 JARAttribute attribute = (JARAttribute) questionData.get(0)[1];
                 
                 List<JARDataPoint> dataPoints = questionData.stream()
-                    .filter(row -> row[2] != null && row[3] != null)
-                    .map(row -> new JARDataPoint((Float) row[2], (Float) row[3]))
+                    .filter(row -> row[2] != null && row[3] != null && row[4] != null)
+                    .map(row -> {
+                        float jarScore = ((Number) row[2]).floatValue() - 3.0f;
+                        float npsRecommend = ((Number) row[3]).floatValue();
+                        float npsReorder = ((Number) row[4]).floatValue();
+                        float npsWeighted = npsRecommend * 0.6f + npsReorder * 0.4f;
+                        return new JARDataPoint(jarScore, npsWeighted);
+                    })
                     .toList();
                 
                 return jarAnalysisService.analyzeJAR(questionId, attribute, dataPoints);
@@ -106,19 +112,31 @@ public class JARAnalysisApplicationService {
         }
         
         log.info("event=jar_question_analysis_started, question_id={}", questionId);
-        
+
         // 해당 질문의 JAR 데이터 조회
-        List<JARDataPoint> dataPoints = answerRepository.findJARDataByQuestion(questionId);
-        
-        if (dataPoints.isEmpty()) {
+        List<Object[]> rawData = answerRepository.findJARDataByQuestion(questionId);
+
+        if (rawData.isEmpty()) {
             log.warn("event=jar_question_data_not_found, question_id={}", questionId);
             throw new JARException(ErrorMessage.JAR_INSUFFICIENT_DATA);
         }
-        
+
+        // 데이터 변환
+        List<JARDataPoint> dataPoints = rawData.stream()
+            .filter(row -> row[0] != null && row[1] != null && row[2] != null)
+            .map(row -> {
+                float jarScore = ((Number) row[0]).floatValue() - 3.0f;
+                float npsRecommend = ((Number) row[1]).floatValue();
+                float npsReorder = ((Number) row[2]).floatValue();
+                float npsWeighted = npsRecommend * 0.6f + npsReorder * 0.4f;
+                return new JARDataPoint(jarScore, npsWeighted);
+            })
+            .toList();
+
         // JAR 분석 실행
         JARAnalysisResult result = jarAnalysisService.analyzeJAR(
-            questionId, 
-            question.getJarAttribute(), 
+            questionId,
+            question.getJarAttribute(),
             dataPoints
         );
         
